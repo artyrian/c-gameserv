@@ -66,10 +66,9 @@ int main(int argc, char ** argv, char ** envp)
 		int rc;
 
 
-		i = 0;
-		//for (fd = arr_d[i]; i < cur_num; fd = arr_d[i++])
 		for (i = 0; i < cur_num; i++)
 		{
+			printf ("FD_SET\n");
 			fd = arr_d[i];
 			FD_SET (fd, &readfds);
 			if (fd > max_d)
@@ -94,17 +93,12 @@ int main(int argc, char ** argv, char ** envp)
 		
 		printDescriptors (arr_d, cur_num);
 		
-		i = 0;
-
-		//for (fd = arr_d[i]; i < cur_num; fd = arr_d[i++])arr_d
 		for (i = 0; i < cur_num; i++)
 		{
 			fd = arr_d[i];
 			printf ("Start cycle wait data\n");
 			if (FD_ISSET(fd, &readfds))
 			{
-				printf ("Start reading.\n");
-
 				rc = read (fd, buf, sizeof(buf)-1); 
 				if ( rc == -1 )
 				{
@@ -118,12 +112,15 @@ int main(int argc, char ** argv, char ** envp)
 				}
 				else 
 				{
-					printf ("Must be shutdown\n");
+					printf ("Client %d disconnected, fd=%d.", i, fd);
+					shutdown(fd, 2);
+					close (fd);
 					if ( cur_num > 1 )
+					{
 						arr_d[i] = arr_d[cur_num];
-						cur_num--;
+					}
+					cur_num--;
 				}
-				printf ("End read cycle\n");
 			}
 		}
 	}
