@@ -38,6 +38,9 @@ int main(int argc, char ** argv, char ** envp)
 		exit (1);
 	}
 
+	int opt = 1;
+	setsockopt(ls, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
 	if (0 != bind(ls, (struct sockaddr *) &addr, sizeof(addr)))
 	{
 		perror("bind");
@@ -96,7 +99,6 @@ int main(int argc, char ** argv, char ** envp)
 		for (i = 0; i < cur_num; i++)
 		{
 			fd = arr_d[i];
-			printf ("Start cycle wait data\n");
 			if (FD_ISSET(fd, &readfds))
 			{
 				rc = read (fd, buf, sizeof(buf)-1); 
