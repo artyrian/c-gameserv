@@ -11,10 +11,12 @@
 #include <unistd.h>
 #include <wait.h>
 
+#define BUF_SIZE 128
+
 int getNumberPlayers (char **);
 int getPort (char **);
 void printServerInfo (int, int);
-void printDescriptors (int *arr_d, int cur_num);
+void printDescriptors (int *, int);
 
 int main(int argc, char ** argv, char ** envp)
 {
@@ -65,13 +67,12 @@ int main(int argc, char ** argv, char ** envp)
 
 		int fd;
 
-		char buf[32];
+		char buf[BUF_SIZE];
 		int rc;
 
 
 		for (i = 0; i < cur_num; i++)
 		{
-			printf ("FD_SET\n");
 			fd = arr_d[i];
 			FD_SET (fd, &readfds);
 			if (fd > max_d)
@@ -89,12 +90,9 @@ int main(int argc, char ** argv, char ** envp)
 
 		if (FD_ISSET(ls, &readfds))
 		{
-			printf ("New client connecting...\n");
 			arr_d[cur_num++] = fd = accept (ls, NULL, NULL); 
-			printf ("cur_num=%d, fd = %d\n", cur_num, fd);
+			printf ("New client connected. FD=%d. #%d.\n", fd, cur_num);
 		}
-		
-		printDescriptors (arr_d, cur_num);
 		
 		for (i = 0; i < cur_num; i++)
 		{
@@ -114,14 +112,13 @@ int main(int argc, char ** argv, char ** envp)
 				}
 				else 
 				{
-					printf ("Client %d disconnected, fd=%d.", i, fd);
+					printf ("Client disconnected. FD=%d.\n", fd);
 					shutdown(fd, 2);
 					close (fd);
-					if ( cur_num > 1 )
-					{
-						arr_d[i] = arr_d[cur_num];
-					}
+					arr_d[i] = arr_d[cur_num - 1];
 					cur_num--;
+					if ( cur_num == 0)
+						printf ("All players disconnected :-(\n");
 				}
 			}
 		}
@@ -170,8 +167,10 @@ void printServerInfo (int port, int numPl)
 void printDescriptors (int *arr_d, int cur_num)
 {
 	int i;
-
+	
+	printf ("Current number of players:%d\n", cur_num);
 	printf ("List of descriptors:\n");
 	for ( i = 0; i < cur_num; i++ ) 
-		printf ("fd=%d\n", arr_d[i]);
+		printf ("fd=%d.", arr_d[i]);
+	printf ("\n");
 }
