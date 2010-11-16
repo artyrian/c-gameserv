@@ -113,6 +113,8 @@ int main(int argc, char ** argv, char ** envp)
 				{
 					buf[rc] = '\0';
 					printf ("%s\n", buf);
+					if ( buf[rc - 1] == '\n' )
+						printf ("ENTER!\n");
 				}
 				else 
 					DisconnectClient(i, &arr_d, &cur_num);
