@@ -1,5 +1,6 @@
 SRCMODULES = buffer.c serverinfo.c client.c 
 OBJMODULES = $(SRCMODULES:.c=.o)
+CC = gcc
 CFLAGS = -g -Wall 
 
 %.o: %.c %.h
