@@ -17,6 +17,7 @@ int getNumberPlayers (char **);
 int getPort (char **);
 void printServerInfo (int, int);
 void printDescriptors (int *, int);
+void DisconnectClient (int, int **, int *);
 
 int main(int argc, char ** argv, char ** envp)
 {
@@ -27,6 +28,8 @@ int main(int argc, char ** argv, char ** envp)
 	
 	int *arr_d = (int *) malloc (numberPlayers*sizeof (int));
 	int i, cur_num = 0;
+
+	const char connectedMsg[30] = "You connected to server.\n";
 	
 	struct sockaddr_in addr;
 	
@@ -92,6 +95,7 @@ int main(int argc, char ** argv, char ** envp)
 		{
 			arr_d[cur_num++] = fd = accept (ls, NULL, NULL); 
 			printf ("New client connected. FD=%d. #%d.\n", fd, cur_num);
+			write (fd, connectedMsg, strlen(connectedMsg) + 1 );
 		}
 		
 		for (i = 0; i < cur_num; i++)
@@ -111,15 +115,7 @@ int main(int argc, char ** argv, char ** envp)
 					printf ("%s\n", buf);
 				}
 				else 
-				{
-					printf ("Client disconnected. FD=%d.\n", fd);
-					shutdown(fd, 2);
-					close (fd);
-					arr_d[i] = arr_d[cur_num - 1];
-					cur_num--;
-					if ( cur_num == 0)
-						printf ("All players disconnected :-(\n");
-				}
+					DisconnectClient(i, &arr_d, &cur_num);
 			}
 		}
 	}
@@ -173,4 +169,19 @@ void printDescriptors (int *arr_d, int cur_num)
 	for ( i = 0; i < cur_num; i++ ) 
 		printf ("fd=%d.", arr_d[i]);
 	printf ("\n");
+}
+
+
+
+/* */
+void DisconnectClient (int i, int ** arr_d, int * n)
+{
+	int fd = (*arr_d)[i];
+
+	printf ("Client disconnected. FD=%d.\n", fd);
+	shutdown(fd, 2);
+	close (fd);
+	(*arr_d)[i] = (*arr_d)[--(*n)];
+	if ( (*n) == 0)
+		printf ("All players disconnected :-(\n");
 }
