@@ -19,14 +19,11 @@ int main(int argc, char ** argv, char ** envp)
 	for (;;)
 	{ 
 		fd_set readfds; 
-		int max_d; 
 
 		FD_ZERO (&readfds);
 		FD_SET (ls, &readfds);
 
-		max_d = MaxDescriptor (clList, &readfds, ls);
-
-	 	CheckActionOnFD_SET (max_d, &readfds);
+	 	CheckActionOnFD_SET (clList, ls, &readfds);
 
 		if (FD_ISSET(ls, &readfds))
 			AcceptQuery (ls, clList);
@@ -38,4 +35,3 @@ int main(int argc, char ** argv, char ** envp)
 
 	return 0;
 }
-

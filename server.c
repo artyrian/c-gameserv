@@ -100,10 +100,14 @@ void BindAddress (int ls, struct sockaddr_in * addr)
 
 
 /* */
-void CheckActionOnFD_SET (int max_d, fd_set *readfds)
+void CheckActionOnFD_SET (struct clientlist *clList,
+				int ls,
+				fd_set *readfds)
 {
 	int res;
+	int max_d;
 
+	max_d = MaxDescriptor (clList, readfds, ls);
 
 	res = select (max_d + 1, readfds, NULL, NULL, NULL);
 	if (res < 1)
