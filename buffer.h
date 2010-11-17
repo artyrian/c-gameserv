@@ -2,8 +2,10 @@
 #define _BUFFER_H_
 
 #include "main.h"
+#include "client.h"
 
-#define BUF_SIZE 32
+#define BUF_SIZE 4 
+#define ON 1
 
 struct buffer 
 {
@@ -12,4 +14,8 @@ struct buffer
 	int part;
 };
 
+void InitBuffer (struct buffer *);
+void ExtendBuffer (struct buffer *);
+
 #endif
+

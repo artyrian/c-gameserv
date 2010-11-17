@@ -3,6 +3,69 @@
 
 
 /* */
+void InitUser (struct client * user, struct clientlist *clList, int fd)
+{
+	user->fd = fd;
+	user->num = clList->cnt;
+	user->next = NULL;
+	user->buf = (struct buffer*) malloc (sizeof(struct buffer));
+
+	InitBuffer ( user->buf );
+}
+
+
+
+
+/* */
+void CreateClientList (struct clientlist ** clList, char ** argv)
+{
+	(*clList) = (struct clientlist *) malloc(sizeof(struct clientlist));
+	(*clList)->first = (*clList)->last = NULL;
+	(*clList)->maxPlayers = GetNumberPlayers(argv);
+}
+
+
+
+/* */
+int MaxDescriptor (struct clientlist *clList, fd_set *readfds, int ls)
+{
+	int max_d;
+	int fd;
+	struct client * user;
+
+	max_d = ls;
+	user = clList->first;
+
+	while ( user != NULL )
+	{
+		fd = user->fd;
+		FD_SET (fd, readfds);
+		if (fd > max_d)
+			max_d = fd;
+		user = user->next;
+	}
+
+	return max_d;
+}
+
+
+
+/* */
+void AcceptQuery (int ls, struct clientlist * clList)
+{
+	int fd;
+
+	fd = accept (ls, NULL, NULL); 
+
+	if ( clList->cnt < clList->maxPlayers)
+		ConnectClient (clList, fd);
+	else
+		DeniedClient (fd);
+}
+
+
+
+/* */
 struct client * GetPrewLastClient(struct clientlist *clList)
 {
 	struct client * user, * returnValueUser;
@@ -31,21 +94,19 @@ void ConnectClient (struct clientlist *clList, int fd)
 {
 	const char strConnected[30] = "You connected to server.\n";
 
-	struct client * new_user;
+	struct client * user;
 	
-	new_user = (struct client *) malloc (sizeof(struct client));
+	user = (struct client *) malloc (sizeof(struct client));
 
 	if ( clList->first == NULL )
-		clList->first = new_user;
+		clList->first = user;
 	else
-		clList->last->next = new_user;
+		clList->last->next = user;
 
-	clList->last = new_user;
+	clList->last = user;
 	clList->cnt ++;
-	
-	new_user->fd = fd;
-	new_user->num = clList->cnt;
-	new_user->next = NULL;
+
+	InitUser (user, clList, fd);
 
 	printf ("New client connected. FD=%d. #%d.\n", fd, clList->cnt);
 
@@ -67,7 +128,10 @@ void DisconnectClient (struct clientlist *clList, struct client *user)
 	user->fd = clList->last->fd;
 	user->num = clList->last->num;
 	
+	free(clList->last->buf->str);
+	free(clList->last->buf);
 	free(clList->last);
+
 	clList->last = GetPrewLastClient (clList);
 	clList->last->next = NULL;
 	clList->cnt --;
@@ -87,6 +151,35 @@ void DeniedClient (int fd)
 {
 	const char strFullServer[30] = "Sorry! The server is full.\n";
 	write (	fd, strFullServer, strlen(strFullServer) + 1);
+}
+
+
+
+/* */
+int ReadToBuffer (struct client * user, int fd)
+{
+	int rc;
+	char c; 
+	char * str;
+	
+	str = user->buf->str;
+
+	rc = read (fd, &c, sizeof(char));
+	if ( rc == -1 )
+	{
+		perror ("read");
+	}
+	
+	if ( rc != 0 )
+	{
+		str[user->buf->cnt++] = c;
+		str[user->buf->cnt] = '\0';
+	}
+
+	if ( user->buf->cnt  == BUF_SIZE * user->buf->part - 1)
+		ExtendBuffer (user->buf);
+
+	return rc;
 }
 
 
