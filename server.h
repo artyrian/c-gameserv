@@ -1,6 +1,12 @@
 #ifndef _SERVER_H_
 #define _SERVER_H_
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/times.h>
+#include <netinet/ip.h>
+
+#include "client.h"
 #include "main.h"
 
 struct sockaddr_in;

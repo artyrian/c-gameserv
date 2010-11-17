@@ -2,7 +2,6 @@
 #define _BUFFER_H_
 
 #include "main.h"
-#include "client.h"
 
 #define BUF_SIZE 4 
 #define ON 1
