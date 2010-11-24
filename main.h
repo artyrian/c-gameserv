@@ -7,4 +7,6 @@
 #include <string.h>
 #include <unistd.h>
 
+int global_i;
+
 #endif

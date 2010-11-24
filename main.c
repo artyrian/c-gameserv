@@ -1,14 +1,17 @@
 #include "main.h"
 #include "server.h"
 #include "client.h"
+#include "game.h"
 
 int main(int argc, char ** argv, char ** envp)
 {
 	int ls; 
 	struct clientlist *clList;
 	struct sockaddr_in addr;
-	
- 	CreateClientList (&clList, argv);
+
+	struct banker * bank;
+
+	CreateBank (&bank, argv);
 
  	InitSockaddr (&addr, argv);
 
@@ -25,12 +28,12 @@ int main(int argc, char ** argv, char ** envp)
 		FD_ZERO (&readfds);
 		FD_SET (ls, &readfds);
 
-	 	CheckActionOnFD_SET (clList, ls, &readfds);
+	 	CheckActionOnFD_SET (bank->clList, ls, &readfds);
 
 		if (FD_ISSET(ls, &readfds))
-			AcceptQuery (ls, clList);
+			AcceptQuery (ls, bank->clList);
 
-		CheckDataFromClients (clList, &readfds);
+		CheckDataFromClients (bank->clList, &readfds);
 	}
 
 	free (clList);

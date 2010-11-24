@@ -1,17 +1,19 @@
 #include "client.h"
 #include "server.h"
-
-
-
+#include "print.h"
+#include "commands.h"
 /* */
 void InitUser (struct client * user, struct clientlist *clList, int fd)
 {
 	user->fd = fd;
 	user->num = clList->cnt;
+	user->fExit = 0;
 	user->next = NULL;
-	user->buf = (struct buffer*) malloc (sizeof(struct buffer));
-
+	user->buf = (struct buffer * ) malloc (sizeof(struct buffer));
 	InitBuffer ( user->buf );
+
+	user->cmd = (struct command * ) malloc (sizeof(struct command));
+	InitCommand (user->cmd);
 }
 
 
@@ -21,8 +23,9 @@ void InitUser (struct client * user, struct clientlist *clList, int fd)
 void CreateClientList (struct clientlist ** clList, char ** argv)
 {
 	(*clList) = (struct clientlist *) malloc(sizeof(struct clientlist));
-	(*clList)->first = (*clList)->last = NULL;
+	(*clList)->first = (*clList)->last = (*clList)->current = NULL;
 	(*clList)->maxPlayers = GetNumberPlayers(argv);
+	(*clList)->statusStartGame = 0;
 }
 
 
@@ -58,10 +61,14 @@ void AcceptQuery (int ls, struct clientlist * clList)
 
 	fd = accept (ls, NULL, NULL); 
 
-	if ( clList->cnt < clList->maxPlayers)
-		ConnectClient (clList, fd);
+	if ( clList->cnt < clList->maxPlayers && !clList->statusStartGame) 
+	{
+		ConnectClient (clList, fd); 
+	}
 	else
+	{
 		DeniedClient (fd);
+	}
 }
 
 
@@ -93,8 +100,6 @@ struct client * GetPrewLastClient(struct clientlist *clList)
 /* */
 void ConnectClient (struct clientlist *clList, int fd)
 {
-	const char strConnected[30] = "You connected to server.\n";
-
 	struct client * user;
 	
 	user = (struct client *) malloc (sizeof(struct client));
@@ -111,23 +116,30 @@ void ConnectClient (struct clientlist *clList, int fd)
 
 	printf ("New client connected. FD=%d. #%d.\n", fd, clList->cnt);
 
-	write ( fd, strConnected, strlen(strConnected) + 1 );
-}
+	PrintToFDSuccessConnect (fd);
+	PrintToAll(clList, StatusUsersConnecting(clList));
+	
+	if ( clList->cnt == clList->maxPlayers )
+	{
+		clList->statusStartGame = 1;
+		PrintToAll (clList, "The game start now.\n");
+	}
+}	
 
 
 
 /* */
-void DisconnectClient (struct clientlist *clList, struct client *user)
+void DisconnectClient (struct clientlist *clList)
 {
-	int fd = user->fd; 
+	int fd = clList->current->fd; 
 
 	shutdown(fd, 2);
 	close (fd);
 	printf ("Client disconnected. FD=%d.\n", fd);
 
 
-	user->fd = clList->last->fd;
-	user->num = clList->last->num;
+	clList->current->fd = clList->last->fd;
+	clList->current->num = clList->last->num;
 	
 	free(clList->last->buf->str);
 	free(clList->last->buf);
@@ -142,6 +154,10 @@ void DisconnectClient (struct clientlist *clList, struct client *user)
 	{
 		clList->first = clList->last = NULL;
 		printf ("All players disconnected :-(\n");
+	}
+	else
+	{
+		PrintToAll(clList, StatusUsersConnecting(clList));
 	}
 }
 
@@ -186,19 +202,21 @@ int ReadToBuffer (struct client * user, int fd)
 
 
 /* */
-void PrintClientlist (struct clientlist *clList)
+char * StatusUsersConnecting (struct clientlist * clList)
 {
-	struct client *user;
+	char * strInfo;
+	int maxPlayers;
+	int curPlayers;	
+	
+	strInfo = (char *) malloc (MESSAGE_LENGHT * sizeof(char));
 
-	user = (struct client *) malloc (sizeof(struct client));
-	user = clList->first;
-
-	printf ("Print clientlist:\n");
-	while ( user != NULL )
-	{
-		printf ("FD=%d. #%d. ", user->fd, user->num);
-		user = user -> next;
-	}
-	printf ("End of clientlist.\n");
-	free (user);
+	maxPlayers = clList->maxPlayers;
+	curPlayers = clList->cnt;
+	
+	sprintf (strInfo, 
+		"Now connected / Max Players:\n$\t%d\t\t%d\n", 
+		curPlayers, maxPlayers);
+	
+	return strInfo;
 }
+

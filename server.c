@@ -10,6 +10,9 @@ int GetNumberPlayers  (char ** argv)
 	
 	if ( argv[1] != '\0' )
 		num = atoi (argv[1]);
+
+//	num = 2;
+
 	return num;
 }
 
@@ -22,31 +25,12 @@ int GetPort (char ** argv)
 
 	if ( argv[2] != '\0' )
 		port = atoi (argv[2]);
+
+//	port = 7777;
+
 	return port;
 }
 
-
-
-/* */
-void PrintServerInfo (int port, int numPl)
-{
-	printf ("Max. players:%d\n", numPl);
-	printf ("Port:%d.\n", port);
-}
-
-
-
-/* */
-void PrintDescriptors (int *arr_d, int cur_num)
-{
-	int i;
-	
-	printf ("Current number of players:%d\n", cur_num);
-	printf ("List of descriptors:\n");
-	for ( i = 0; i < cur_num; i++ ) 
-		printf ("fd=%d.", arr_d[i]);
-	printf ("\n");
-}
 
 
 
@@ -124,27 +108,23 @@ void CheckActionOnFD_SET (struct clientlist *clList,
 /* */
 void CheckDataFromClients (struct clientlist * clList, fd_set * readfds)
 {
-	struct client * user;
 	int fd;
 	int rc;
 
-	user = (struct client *) malloc (sizeof(struct client));
-	user = clList->first;
+	clList->current = clList->first;
 
-	while ( user != NULL )
+	while ( clList->current != NULL )
 	{
-		fd = user->fd;
+		fd = clList->current->fd;
 		if (FD_ISSET(fd, readfds))
 		{
-			rc = ReadToBuffer (user, fd); 
+			rc = ReadToBuffer (clList->current, fd); 
 			if ( rc > 0 )
-				ParseCommand (user->buf, rc);
-			else 
-				DisconnectClient(clList, user);
+				ParseCommand (clList);
+			if ( rc == 0 || clList->current->fExit == 1 )
+				DisconnectClient(clList);
 		}
-		user = user->next;
+		clList->current = clList->current->next;
 	}
-
-	free (user);
 }
 

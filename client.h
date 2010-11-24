@@ -3,12 +3,16 @@
 
 #include "main.h"
 #include "buffer.h"
+#include "game.h"
 
+#define MESSAGE_LENGHT 64
 struct client
 {
 	int fd;
 	int num;
+	int fExit;
 	struct buffer *buf;
+	struct command *cmd;
 	struct client *next;
 };
 
@@ -16,7 +20,9 @@ struct clientlist
 {
 	int maxPlayers;
 	int cnt;
+	int statusStartGame;	
 	struct client *first;
+	struct client *current;
 	struct client *last;
 };
 
@@ -27,10 +33,11 @@ int MaxDescriptor (struct clientlist *, fd_set *, int);
 void AcceptQuery (int, struct clientlist *);
 
 void ConnectClient (struct clientlist *, int);
-void DisconnectClient (struct clientlist *, struct client *);
+void DisconnectClient (struct clientlist *);
 void DeniedClient (int);
 
 int ReadToBuffer (struct client *, int);
 
-void PrintClientlist (struct clientlist *);
+char * StatusUsersConnecting (struct clientlist *);
+
 #endif
