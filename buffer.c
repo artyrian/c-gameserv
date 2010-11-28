@@ -12,6 +12,7 @@ void InitBuffer (struct buffer * buf)
 
 
 
+
 /* Extend buffer (linear) */
 void ExtendBuffer (struct buffer *buf)
 {

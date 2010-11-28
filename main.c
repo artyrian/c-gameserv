@@ -33,7 +33,10 @@ int main(int argc, char ** argv, char ** envp)
 		if (FD_ISSET(ls, &readfds))
 			AcceptQuery (ls, bank->clList);
 
-		CheckDataFromClients (bank->clList, &readfds);
+		CheckDataFromClients (bank, &readfds);
+
+		if ( bank->clList->statusStartGame != 0 )
+			GameCycle (bank);
 	}
 
 	free (clList);

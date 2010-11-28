@@ -14,17 +14,28 @@ struct word
 
 struct command
 {
+	int cnt;
 	struct word * first;
 	struct word * last;
 };
 
 void InitCommand (struct command *);
+void ClearCommand (struct command *);
 void Help (int);
 
 void IncrementVar ();
 void PrintVar (int);
-void PrintHelp (int);
 void GameNotStarted (int);
 
+void Market (struct banker *);
+void PlayerInfo (struct banker *);
+void Production (struct banker *);
+void Buy (struct banker *);
+void Sell (struct banker *);
+void Build (struct banker *);
+void TurnStep (struct banker *);
+
+
+void PrintHelp (struct banker *);
 #endif
 

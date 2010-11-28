@@ -6,14 +6,24 @@
 #include "game.h"
 
 #define MESSAGE_LENGHT 64
+
+struct userFlags
+{
+	int turn;
+};
+
 struct client
 {
-	int fd;
-	int num;
-	int fExit;
-	struct buffer *buf;
-	struct command *cmd;
-	struct client *next;
+	int number;
+	struct settings * contact;
+	struct stuff * data;
+	struct auction * sell;
+	struct auction * buy;
+	struct userFlags * f;
+	struct buffer * buf;
+	struct command * cmd;
+
+	struct client * next;
 };
 
 struct clientlist
@@ -39,5 +49,6 @@ void DeniedClient (int);
 int ReadToBuffer (struct client *, int);
 
 char * StatusUsersConnecting (struct clientlist *);
-
+char * StatusUsersPlaying (struct clientlist *);
+char * GetInfoPlayer (struct client *);
 #endif

@@ -1,5 +1,5 @@
 #include "print.h"
-
+#include "server.h"
 
 
 /* */
@@ -36,7 +36,10 @@ void PrintClientlist (struct clientlist *clList)
 	printf ("Print clientlist:\n");
 	while ( user != NULL )
 	{
-		printf ("FD=%d. #%d. ", user->fd, user->num);
+		printf ("FD=%d. #%d. ", 
+			user->contact->fd, 
+			user->contact->num);
+
 		user = user -> next;
 	}
 	printf ("End of clientlist.\n");
@@ -67,7 +70,7 @@ void PrintToAll(struct clientlist * clList, char * strInfo)
 
 	while ( user != NULL )
 	{
-		fd = user->fd;
+		fd = user->contact->fd;
 		write (fd, strInfo, strlen(strInfo) + 1);
 		user = user->next;
 	}

@@ -1,5 +1,8 @@
 First step is ended. Must be passed to Stolyarov.
 Second step. Think about structure if game data and create it.
 (Also maybe print "gameserv.pdf")
-1) Create commands.
++1) Create commands.
 2) Read about event-programming.
+
+
+NB!!! Use time.h fot srand, because pseaudo-random ints is use.

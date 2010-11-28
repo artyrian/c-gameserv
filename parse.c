@@ -1,4 +1,5 @@
 #include "parse.h"
+#include "server.h"
 
 
 
@@ -8,9 +9,10 @@ void FindCommandBeforeStart (struct client * user)
 	char * str;
 	int fd;
 
-	fd = user->fd;
+	fd = user->contact->fd;
 	str = user->cmd->first->str;
 
+	printf ("str=%s.", str);
 	if ( user->cmd->first != NULL )
 	{
 		GameNotStarted (fd);
@@ -20,43 +22,45 @@ void FindCommandBeforeStart (struct client * user)
 
 
 /* */
-void FindCommandAfterStart (struct client * user)
+void FindCommandAfterStart (struct banker * bank)
 {
+	struct client * user;
 	char * str;
 	int i;
 	int fd;
-
-	fd = user->fd;
-	str = user->buf->str;
+	
+	user = bank->clList->current;
+	fd = user->contact->fd;
+	str = user->cmd->first->str;
 	i = user->buf->cnt - 2;
 
 	if ( !strncmp (str, "MARKET", i) && i )
 	{
-		;
+		Market (bank);	
 	}
 	else if ( !strncmp (str, "PLAYER", i) && i )
 	{
-		;
+		PlayerInfo (bank);	
 	}
 	else if ( !strncmp (str, "PROD", i) && i )
 	{
-		;
+		Production (bank);		
 	}
 	else if ( !strncmp (str, "BUY", i) && i )
 	{
-		;
+		Buy (bank);	
 	}
 	else if ( !strncmp (str, "SELL", i) && i )
 	{
-		;
+		Sell (bank);	
 	}
 	else if ( !strncmp (str, "BUILD", i) && i )
 	{
-		;
+		Build (bank);	
 	}
 	else if ( !strncmp (str, "TURN", i) && i )
 	{
-		;
+		TurnStep (bank);
 	}
 	else if ( !strncmp (str, "INC", i) && i )
 	{
@@ -68,11 +72,6 @@ void FindCommandAfterStart (struct client * user)
 		printf ("Now print(FD=%d)\n", fd);	
 		PrintVar (fd);
 	}
-	else if ( !strncmp(str, "EXIT", i) && i)
-	{
-		printf ("Now exit\n");	
-		user->fExit = 1;
-	}
 	else if ( !strncmp(str, "HELP", i) && i)
 	{
 		Help (fd);
@@ -81,18 +80,24 @@ void FindCommandAfterStart (struct client * user)
 	{
 	}
 	else 
-		PrintHelp (fd);
+		PrintHelp (bank);
 }
 
 
 
 /* */
-void FindCommand (struct clientlist * clList)
+void FindCommand (struct banker * bank)
 {
-	if (clList->statusStartGame == 1)
-		FindCommandAfterStart (clList->current);	
-	else
-		FindCommandBeforeStart (clList->current);
+	struct command * cmd;
+
+	cmd = bank->clList->current->cmd;
+	if ( cmd->cnt != 0 ) 
+	{
+		if (bank->clList->statusStartGame == 1)
+			FindCommandAfterStart (bank);	
+		else
+			FindCommandBeforeStart (bank->clList->current);
+	}
 }
 
 
@@ -107,6 +112,8 @@ void AddWordToStructure (struct clientlist * clList, char * str, int i)
 
 	strcpy (word->str, str);
 
+	clList->current->cmd->cnt++;
+
 	if ( clList->current->cmd->first == NULL )
 		clList->current->cmd->first = word;
 	else
@@ -117,11 +124,11 @@ void AddWordToStructure (struct clientlist * clList, char * str, int i)
 
 
 /* */
-char SkipSpaces (char c)
+char SkipSpaces (struct clientlist * clList, char c, int * i)
 {
-	while ( c == '\0' || c == '\t' || c == ' ' )
+	while ( c == '\t' || c == ' ' || c == '\n' ) 
 	{
-		c = getchar ();	
+		c = clList->current->buf->str[++(*i)];
 	}
 	
 	return c;
@@ -134,24 +141,31 @@ void DivisionWords (struct clientlist * clList)
 {
 	char * parsedStr;
 	char c;
-	int i, cnt;
+	int i, j, cnt;
 	
 	cnt = clList->current->buf->cnt;
 	parsedStr = (char *) malloc (cnt * sizeof(char));
-
-	SkipSpaces (c = getchar());
-	while ( c != '\0' )
+	
+	i = 0;
+	c = clList->current->buf->str[0];
+	c = SkipSpaces (clList, c, &i);
+	while ( c != '\n' &&  c != '\0' && i <= cnt )
 	{
-		i = 0;
-		SkipSpaces (c);
-		while ( c != '\0' || c != ' ' || c != '\t' )
+		j = 0;
+		c = SkipSpaces (clList, c, &i);
+		while (c != '\0' && c != ' ' && c != '\t' && c != '\n'
+			&& i <= cnt) 
 		{
-			parsedStr[i++] = c;
-			parsedStr[i] = '\0';
+			parsedStr[j++] = c;
+			parsedStr[j] = '\0';
+			c = clList->current->buf->str[++i];
 		}
 
-		AddWordToStructure (clList, parsedStr, i);
-		
+		c = SkipSpaces (clList, c, &i);
+		if ( c != '\0' || j != 1 )
+		{
+			AddWordToStructure (clList, parsedStr, j);
+		}
 	}
 
 	free (parsedStr);
@@ -159,26 +173,30 @@ void DivisionWords (struct clientlist * clList)
 
 
 /* */
-void ParseCommand (struct clientlist * clList)
+void ParseCommand (struct banker * bank)
 {
 	char * str;
 	int i;
 	struct client * user;
 
-	user = clList->current;
+	user = bank->clList->current;
 	i = user->buf->cnt;
 	str = user->buf->str;
 	if ( str[i - 1] == '\n' )
 	{
 	
-		//DivisionWords (clList);	
+		DivisionWords (bank->clList);	
 
-		FindCommand (clList);
+		FindCommand (bank);
 
+		free (user->buf->str);
 		free (user->buf);
 		user->buf = (struct buffer*) malloc (sizeof(struct buffer));
 
 		InitBuffer (user->buf);		
+
+		ClearCommand (user->cmd);
+		InitCommand (user->cmd);
 	}
 }
 

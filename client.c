@@ -2,15 +2,38 @@
 #include "server.h"
 #include "print.h"
 #include "commands.h"
+
+
+
+/* */
+void InitFlags (struct userFlags * f)
+{
+	f->turn = 0;
+}
+
+
+
 /* */
 void InitUser (struct client * user, struct clientlist *clList, int fd)
 {
-	user->fd = fd;
-	user->num = clList->cnt;
-	user->fExit = 0;
+	user->number = clList->cnt;
 	user->next = NULL;
+
+	user->contact = (struct settings*)malloc(sizeof(struct settings));
+	user->contact->fd = fd;
+	user->contact->num = clList->cnt;
+
+	user->f = (struct userFlags *) malloc (sizeof(struct userFlags));
+	InitFlags (user->f);
+
+	user->sell = (struct auction *) malloc (sizeof(struct auction));
+	user->buy = (struct auction *) malloc (sizeof(struct auction));
+
+	user->data = (struct stuff *) malloc (sizeof(struct stuff));
+	InitStuff (user->data);
+
 	user->buf = (struct buffer * ) malloc (sizeof(struct buffer));
-	InitBuffer ( user->buf );
+	InitBuffer (user->buf);
 
 	user->cmd = (struct command * ) malloc (sizeof(struct command));
 	InitCommand (user->cmd);
@@ -42,7 +65,7 @@ int MaxDescriptor (struct clientlist *clList, fd_set *readfds, int ls)
 
 	while ( user != NULL )
 	{
-		fd = user->fd;
+		fd = user->contact->fd;
 		FD_SET (fd, readfds);
 		if (fd > max_d)
 			max_d = fd;
@@ -131,15 +154,15 @@ void ConnectClient (struct clientlist *clList, int fd)
 /* */
 void DisconnectClient (struct clientlist *clList)
 {
-	int fd = clList->current->fd; 
+	int fd = clList->current->contact->fd; 
 
 	shutdown(fd, 2);
 	close (fd);
 	printf ("Client disconnected. FD=%d.\n", fd);
 
 
-	clList->current->fd = clList->last->fd;
-	clList->current->num = clList->last->num;
+	clList->current->contact->fd = clList->last->contact->fd;
+	clList->current->contact->num = clList->last->contact->num;
 	
 	free(clList->last->buf->str);
 	free(clList->last->buf);
@@ -220,3 +243,40 @@ char * StatusUsersConnecting (struct clientlist * clList)
 	return strInfo;
 }
 
+
+
+/* */
+char * StatusUsersPlaying (struct clientlist * clList)
+{
+	char * strInfo;
+	int curPlayers;	
+	
+	strInfo = (char *) malloc (MESSAGE_LENGHT * sizeof(char));
+
+	curPlayers = clList->cnt;
+	
+	sprintf (strInfo, 
+		"Players still active:\n$\t%d\n", curPlayers);
+	
+	return strInfo;
+}
+
+
+
+/* */
+char * GetInfoPlayer (struct client * user)
+{
+	const int STR_INFO = 5;
+	char * strInfo;
+	strInfo = (char *) malloc (MESSAGE_LENGHT * STR_INFO);
+	
+	sprintf (strInfo, 
+		"# %d\tMONEY | RAW | PRODUCT | FACTORY\n$\t%d\t%d\t%d\t%d\n",
+		user->number,
+		user->data->money,
+		user->data->raw,
+		user->data->product,
+		user->data->factory
+		);
+	return strInfo;
+}

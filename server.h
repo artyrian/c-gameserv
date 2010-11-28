@@ -9,9 +9,14 @@
 #include "client.h"
 #include "main.h"
 
+struct settings
+{
+	int fd;
+	int num;
+};
+
+
 struct sockaddr_in;
-
-
 
 void InitSockaddr (struct sockaddr_in *, char **);
 void CreateListenSocket (int *);
@@ -19,9 +24,8 @@ void BindAddress (int , struct sockaddr_in *);
 void ListeningState (int );
 
 void CheckActionOnFD_SET (struct clientlist *, int, fd_set *);
-void CheckDataFromClients (struct clientlist *, fd_set *);
+void CheckDataFromClients (struct banker *, fd_set *);
 
 int GetNumberPlayers (char **);
-
 
 #endif

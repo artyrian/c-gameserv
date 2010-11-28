@@ -5,6 +5,6 @@
 #include "commands.h"
 #include "client.h"
 
-void ParseCommand (struct clientlist *);
+void ParseCommand (struct banker *);
 
 #endif

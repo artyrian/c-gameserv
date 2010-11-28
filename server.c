@@ -11,7 +11,7 @@ int GetNumberPlayers  (char ** argv)
 	if ( argv[1] != '\0' )
 		num = atoi (argv[1]);
 
-//	num = 2;
+	num = 2;
 
 	return num;
 }
@@ -26,7 +26,7 @@ int GetPort (char ** argv)
 	if ( argv[2] != '\0' )
 		port = atoi (argv[2]);
 
-//	port = 7777;
+	port = 7777;
 
 	return port;
 }
@@ -106,22 +106,24 @@ void CheckActionOnFD_SET (struct clientlist *clList,
 
 
 /* */
-void CheckDataFromClients (struct clientlist * clList, fd_set * readfds)
+void CheckDataFromClients (struct banker * bank, fd_set * readfds)
 {
+	struct clientlist * clList;
 	int fd;
 	int rc;
 
+	clList = bank->clList;
 	clList->current = clList->first;
 
 	while ( clList->current != NULL )
 	{
-		fd = clList->current->fd;
+		fd = clList->current->contact->fd;
 		if (FD_ISSET(fd, readfds))
 		{
 			rc = ReadToBuffer (clList->current, fd); 
 			if ( rc > 0 )
-				ParseCommand (clList);
-			if ( rc == 0 || clList->current->fExit == 1 )
+				ParseCommand (bank);
+			if ( rc == 0 )
 				DisconnectClient(clList);
 		}
 		clList->current = clList->current->next;
