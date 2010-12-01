@@ -27,7 +27,10 @@ void InitUser (struct client * user, struct clientlist *clList, int fd)
 	InitFlags (user->f);
 
 	user->sell = (struct auction *) malloc (sizeof(struct auction));
+	InitBuyOrSell (user->sell);
+
 	user->buy = (struct auction *) malloc (sizeof(struct auction));
+	InitBuyOrSell (user->buy);
 
 	user->data = (struct stuff *) malloc (sizeof(struct stuff));
 	InitStuff (user->data);
@@ -37,6 +40,7 @@ void InitUser (struct client * user, struct clientlist *clList, int fd)
 
 	user->cmd = (struct command * ) malloc (sizeof(struct command));
 	InitCommand (user->cmd);
+	
 }
 
 
@@ -145,25 +149,45 @@ void ConnectClient (struct clientlist *clList, int fd)
 	if ( clList->cnt == clList->maxPlayers )
 	{
 		clList->statusStartGame = 1;
-		PrintToAll (clList, "The game start now.\n");
+		PrintToAll (clList, "The game start now.\n>= = = 1th month. = = =<\n>");
 	}
 }	
+
+void CopyStructuresClient (struct clientlist *clList)
+{
+	clList->current->number = clList->last->number;
+
+	clList->current->contact->fd = clList->last->contact->fd;
+	clList->current->contact->num = clList->last->contact->num;
+
+	clList->current->data->money = clList->last->data->money;
+	clList->current->data->raw = clList->last->data->raw;
+	clList->current->data->order = clList->last->data->order; 
+	clList->current->data->product = clList->last->data->product;
+	clList->current->data->factory = clList->last->data->factory;
+
+	clList->current->buy->item = clList->last->buy->item;
+	clList->current->buy->price = clList->last->buy->price;
+	clList->current->sell->item = clList->last->sell->item;
+	clList->current->sell->price = clList->last->sell->price;
+
+	clList->current->f->turn = clList->last->f->turn;
+}
 
 
 
 /* */
 void DisconnectClient (struct clientlist *clList)
 {
-	int fd = clList->current->contact->fd; 
+	int fd;
+	
+	fd = clList->current->contact->fd; 
+	CopyStructuresClient (clList);
 
 	shutdown(fd, 2);
 	close (fd);
 	printf ("Client disconnected. FD=%d.\n", fd);
 
-
-	clList->current->contact->fd = clList->last->contact->fd;
-	clList->current->contact->num = clList->last->contact->num;
-	
 	free(clList->last->buf->str);
 	free(clList->last->buf);
 	free(clList->last);
@@ -180,8 +204,9 @@ void DisconnectClient (struct clientlist *clList)
 	}
 	else
 	{
-		PrintToAll(clList, StatusUsersConnecting(clList));
+		PrintToAll (clList, StatusUsersConnecting (clList));
 	}
+
 }
 
 
@@ -271,12 +296,13 @@ char * GetInfoPlayer (struct client * user)
 	strInfo = (char *) malloc (MESSAGE_LENGHT * STR_INFO);
 	
 	sprintf (strInfo, 
-		"# %d\tMONEY | RAW | PRODUCT | FACTORY\n$\t%d\t%d\t%d\t%d\n",
+		"# %d\tMONEY | RAW | PRODUCT | FACTORY | BUILDING\n$\t%d\t%d\t%d\t%d\t\t%d\n",
 		user->number,
 		user->data->money,
 		user->data->raw,
 		user->data->product,
-		user->data->factory
+		user->data->factory,
+		user->data->cntBuild	
 		);
 	return strInfo;
 }

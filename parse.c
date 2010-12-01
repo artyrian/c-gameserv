@@ -22,7 +22,7 @@ void FindCommandBeforeStart (struct client * user)
 
 
 /* */
-void FindCommandAfterStart (struct banker * bank)
+void FindInfoCommand(struct banker * bank)
 {
 	struct client * user;
 	char * str;
@@ -32,7 +32,7 @@ void FindCommandAfterStart (struct banker * bank)
 	user = bank->clList->current;
 	fd = user->contact->fd;
 	str = user->cmd->first->str;
-	i = user->buf->cnt - 2;
+	i = strlen (user->cmd->first->str) - 1;
 
 	if ( !strncmp (str, "MARKET", i) && i )
 	{
@@ -42,7 +42,47 @@ void FindCommandAfterStart (struct banker * bank)
 	{
 		PlayerInfo (bank);	
 	}
-	else if ( !strncmp (str, "PROD", i) && i )
+	else if ( !strncmp (str, "WHOAMI", i) && i )
+	{
+		WhoAmI (bank);
+	}
+	else if ( !strncmp (str, "INC", i) && i )
+	{
+		printf ("Now inc\n");	
+		IncrementVar ();
+	}	
+	else if ( !strncmp(str, "PRINT", i) && i )
+	{
+		printf ("Now print(FD=%d)\n", fd);	
+		PrintVar (fd);
+	}
+	else if ( !strncmp(str, "HELP", i) && i)
+	{
+		Help (fd);
+	}
+	else 
+		PrintHelp (bank);
+	
+}
+
+
+
+/* */
+int FindActionCommand (struct banker * bank)
+{
+	struct client * user;
+	char * str;
+	int i;
+	int fd;
+	int result;
+	
+	result = 1;
+	user = bank->clList->current;
+	fd = user->contact->fd;
+	str = user->cmd->first->str;
+	i = strlen (user->cmd->first->str) - 1;
+
+	if ( !strncmp (str, "PROD", i) && i )
 	{
 		Production (bank);		
 	}
@@ -62,26 +102,12 @@ void FindCommandAfterStart (struct banker * bank)
 	{
 		TurnStep (bank);
 	}
-	else if ( !strncmp (str, "INC", i) && i )
-	{
-		printf ("Now inc\n");	
-		IncrementVar ();
-	}	
-	else if ( !strncmp(str, "PRINT", i) && i )
-	{
-		printf ("Now print(FD=%d)\n", fd);	
-		PrintVar (fd);
-	}
-	else if ( !strncmp(str, "HELP", i) && i)
-	{
-		Help (fd);
-	}
-	else if ( !strncmp(str, "", i) && (i == 0) )
-	{
-	}
 	else 
-		PrintHelp (bank);
+		result = 0;	
+	
+	return result;
 }
+
 
 
 
@@ -93,10 +119,19 @@ void FindCommand (struct banker * bank)
 	cmd = bank->clList->current->cmd;
 	if ( cmd->cnt != 0 ) 
 	{
-		if (bank->clList->statusStartGame == 1)
-			FindCommandAfterStart (bank);	
-		else
+		if (bank->clList->statusStartGame == 0)
+		{
 			FindCommandBeforeStart (bank->clList->current);
+		}
+		else if (bank->clList->current->f->turn != 0)
+		{
+			FindInfoCommand(bank);	
+		}
+		else
+		{
+			if ( FindActionCommand (bank) == 0 )
+				FindInfoCommand (bank);
+		}
 	}
 }
 
@@ -130,7 +165,6 @@ char SkipSpaces (struct clientlist * clList, char c, int * i)
 	{
 		c = clList->current->buf->str[++(*i)];
 	}
-	
 	return c;
 }
 
@@ -177,9 +211,11 @@ void ParseCommand (struct banker * bank)
 {
 	char * str;
 	int i;
+	int fd;
 	struct client * user;
 
 	user = bank->clList->current;
+	fd = user->contact->fd;
 	i = user->buf->cnt;
 	str = user->buf->str;
 	if ( str[i - 1] == '\n' )
@@ -197,6 +233,8 @@ void ParseCommand (struct banker * bank)
 
 		ClearCommand (user->cmd);
 		InitCommand (user->cmd);
+		
+		PrintComing (fd, bank->clList->statusStartGame);
 	}
 }
 

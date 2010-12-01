@@ -4,7 +4,7 @@
 #include "main.h"
 #include "print.h"
 
-#define NUMBER_OF_COMMANDS 10
+#define NUMBER_OF_COMMANDS 9
 
 struct word
 {
@@ -34,7 +34,7 @@ void Buy (struct banker *);
 void Sell (struct banker *);
 void Build (struct banker *);
 void TurnStep (struct banker *);
-
+void WhoAmI (struct banker *);
 
 void PrintHelp (struct banker *);
 #endif

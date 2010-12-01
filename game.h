@@ -2,6 +2,7 @@
 #define _GAME_H_
 
 #include "main.h"
+#include "auction.h"
 
 #define START_MONEY 10000
 #define START_RAW 4
@@ -13,11 +14,11 @@
 #define COSTS_FACTORY 1000
 
 #define PRICE_PROD 2000
-
-struct auction
+#define HALF_PRICE_FACTORY 2500
+struct build
 {
-	int number;
-	int price;
+	int startMonth;
+	struct build * next;
 };
 
 struct stuff
@@ -27,6 +28,8 @@ struct stuff
 	int order;
 	int product;
 	int factory;
+	int cntBuild;
+	struct build * project;
 };
 
 
@@ -34,9 +37,12 @@ struct banker
 {
 	int state;
 	int month;
+	struct auction * buy;
+	struct auction * sell;
 	struct clientlist * clList;
 };
 
+void InitBuyOrSell (struct auction *);
 void InitStuff (struct stuff *);
 void CreateBank (struct banker **, char **);
 
