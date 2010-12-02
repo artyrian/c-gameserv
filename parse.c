@@ -34,29 +34,29 @@ void FindInfoCommand(struct banker * bank)
 	str = user->cmd->first->str;
 	i = strlen (user->cmd->first->str) - 1;
 
-	if ( !strncmp (str, "MARKET", i) && i )
+	if ( !strncmp (str, "market", 6) && i )
 	{
 		Market (bank);	
 	}
-	else if ( !strncmp (str, "PLAYER", i) && i )
+	else if ( !strncmp (str, "player", 6) && i )
 	{
 		PlayerInfo (bank);	
 	}
-	else if ( !strncmp (str, "WHOAMI", i) && i )
+	else if ( !strncmp (str, "whoami", 6) && i )
 	{
 		WhoAmI (bank);
 	}
-	else if ( !strncmp (str, "INC", i) && i )
+	else if ( !strncmp (str, "INC", 3) && i )
 	{
 		printf ("Now inc\n");	
 		IncrementVar ();
 	}	
-	else if ( !strncmp(str, "PRINT", i) && i )
+	else if ( !strncmp(str, "PRINT", 5) && i )
 	{
 		printf ("Now print(FD=%d)\n", fd);	
 		PrintVar (fd);
 	}
-	else if ( !strncmp(str, "HELP", i) && i)
+	else if ( !strncmp(str, "help", 4) && i)
 	{
 		Help (fd);
 	}
@@ -82,29 +82,28 @@ int FindActionCommand (struct banker * bank)
 	str = user->cmd->first->str;
 	i = strlen (user->cmd->first->str) - 1;
 
-	if ( !strncmp (str, "PROD", i) && i )
+	if ( !strncmp (str, "prod", 4) && i)
 	{
 		Production (bank);		
 	}
-	else if ( !strncmp (str, "BUY", i) && i )
+	else if ( !strncmp (str, "buy", 3) && i )
 	{
 		Buy (bank);	
 	}
-	else if ( !strncmp (str, "SELL", i) && i )
+	else if ( !strncmp (str, "sell", 4) && i )
 	{
 		Sell (bank);	
 	}
-	else if ( !strncmp (str, "BUILD", i) && i )
+	else if ( !strncmp (str, "build", 5) && i )
 	{
 		Build (bank);	
 	}
-	else if ( !strncmp (str, "TURN", i) && i )
+	else if ( !strncmp (str, "turn", 4) && i )
 	{
 		TurnStep (bank);
 	}
 	else 
 		result = 0;	
-	
 	return result;
 }
 
@@ -178,7 +177,7 @@ void DivisionWords (struct clientlist * clList)
 	int i, j, cnt;
 	
 	cnt = clList->current->buf->cnt;
-	parsedStr = (char *) malloc (cnt * sizeof(char));
+	parsedStr = (char *) malloc ((cnt+1) * sizeof(char));
 	
 	i = 0;
 	c = clList->current->buf->str[0];
@@ -195,7 +194,7 @@ void DivisionWords (struct clientlist * clList)
 			c = clList->current->buf->str[++i];
 		}
 
-		c = SkipSpaces (clList, c, &i);
+		//c = SkipSpaces (clList, c, &i);
 		if ( c != '\0' || j != 1 )
 		{
 			AddWordToStructure (clList, parsedStr, j);

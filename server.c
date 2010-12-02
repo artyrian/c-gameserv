@@ -11,7 +11,7 @@ int GetNumberPlayers  (char ** argv)
 	if ( argv[1] != '\0' )
 		num = atoi (argv[1]);
 
-	num = 2;
+//	num = 3;
 
 	return num;
 }
@@ -26,7 +26,7 @@ int GetPort (char ** argv)
 	if ( argv[2] != '\0' )
 		port = atoi (argv[2]);
 
-	port = 7777;
+//	port = 7777;
 
 	return port;
 }

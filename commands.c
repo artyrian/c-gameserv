@@ -345,25 +345,26 @@ void Sell (struct banker * bank)
 /* */
 void Build (struct banker * bank)
 {
-	struct build * tmp, * cur, * last;
 	struct client * user;
+	struct fctr * tmp;
 
-	tmp = (struct build *) malloc (sizeof(struct build));
+	tmp = (struct fctr *) malloc (sizeof(struct fctr));
 	tmp->startMonth = bank->month;
 	tmp->next = NULL;
 
 	user = bank->clList->current;
-
-	cur = user->data->project;
-	last = cur;
-	while ( cur != NULL )
+	
+	if ( user->data->project->last == NULL )
 	{
-		last = cur;
-		cur = cur->next;
+		user->data->project->first = tmp;
 	}
+	else
+	{
+		user->data->project->last->next = tmp;
+	}
+	user->data->project->last = tmp;
 
 	user->data->money -= HALF_PRICE_FACTORY;
-	user->data->project = last;	
 	user->data->cntBuild++;
 
 	PrintSuccessBuild (bank->clList);
@@ -404,8 +405,8 @@ void WhoAmI (struct banker * bank)
 /* */
 void Help (int fd)
 {
-	const char strHelp[NUMBER_OF_COMMANDS * MESSAGE_LENGHT] = 
-	"It's HELP to commands.\nMARKET\t- show information about market.\nPLAYER N- show information about bussines of player #N (positive int).\nPROD\t- make 1 product (need 1 factory, 1 raw, 2000$).\nBUY N M\t- buy N row by M dollars.\nSELL N M- sell N production by M dollars.\nBUILD\t- build one more factory (2500$ now, 2500$ after 5 months).\nTURN\t- end of this round.\nWHOAMI\t- watch your current player number.\nHELP\t- call this help.\n\0"
+	const char strHelp[(NUMBER_OF_COMMANDS+1) * MESSAGE_LENGHT] = 
+	"It's help to commands.(i - info cmd, c - control cmd)\nmarket\t- show information about market.(i)\nplayer N- show information about bussines of player #N (positive int).(i)\nprod\t- make 1 product (need 1 factory, 1 raw, 2000$).(c)\nbuy N M\t- buy N row by M dollars.(c)\nsell M- sell N production by M dollars.(c)\nbuild\t- build one more factory (2500$ now, 2500$ after 5 months).(c)\nturn\t- end of this round.(c)\nwhoami\t- watch your current player number.(i)\nhelp\t- call this help.(i)\n\0"
 	;
 	
 	write (fd, &strHelp, strlen(strHelp) + 1);
@@ -415,7 +416,7 @@ void PrintHelp (struct banker * bank)
 {
 	int fd;
 	const char strHelp[MESSAGE_LENGHT] =
-	"Call help you can with command HELP\n\0";
+	"Call help you can with command \"help\" (without quotes)\n\0";
 
 	fd = bank->clList->current->contact->fd;
 	write (fd, &strHelp, strlen(strHelp) + 1);

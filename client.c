@@ -165,6 +165,9 @@ void CopyStructuresClient (struct clientlist *clList)
 	clList->current->data->order = clList->last->data->order; 
 	clList->current->data->product = clList->last->data->product;
 	clList->current->data->factory = clList->last->data->factory;
+	clList->current->data->cntBuild = clList->last->data->cntBuild;
+
+	clList->current->data->project =  clList->last->data->project;
 
 	clList->current->buy->item = clList->last->buy->item;
 	clList->current->buy->price = clList->last->buy->price;
@@ -191,6 +194,37 @@ void DisconnectClient (struct clientlist *clList)
 	free(clList->last->buf->str);
 	free(clList->last->buf);
 	free(clList->last);
+
+	clList->last = GetPrewLastClient (clList);
+	clList->last->next = NULL;
+	clList->cnt --;
+	printf ("Clients now:%d.\n", clList->cnt);
+
+	if ( clList->cnt  == 0)
+	{
+		clList->first = clList->last = NULL;
+		printf ("All players disconnected :-(\n");
+	}
+	else
+	{
+		PrintToAll (clList, StatusUsersConnecting (clList));
+	}
+
+}
+
+
+
+/* */
+void DisconnectClient2 (struct clientlist *clList)
+{
+	int fd;
+	
+	fd = clList->current->contact->fd; 
+
+
+	shutdown(fd, 2);
+	close (fd);
+	printf ("Client disconnected. FD=%d.\n", fd);
 
 	clList->last = GetPrewLastClient (clList);
 	clList->last->next = NULL;
