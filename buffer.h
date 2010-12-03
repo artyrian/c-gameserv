@@ -15,6 +15,7 @@ struct buffer
 
 void InitBuffer (struct buffer *);
 void ExtendBuffer (struct buffer *);
+void FreeBuffer (struct buffer *);
 
 #endif
 

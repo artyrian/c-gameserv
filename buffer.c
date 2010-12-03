@@ -1,8 +1,13 @@
 #include "buffer.h"
+#include <stdlib.h>
+#include <string.h>
 
 
 
-/* */
+/* Initialization buffer.
+ * Create string for write
+ * and init cnts of parts(1) and symbols(0)
+ */
 void InitBuffer (struct buffer * buf)
 {
 	buf->str = (char *) malloc (BUF_SIZE);
@@ -13,7 +18,12 @@ void InitBuffer (struct buffer * buf)
 
 
 
-/* Extend buffer (linear) */
+/* Extend buffer (linear).
+ * Inc part of buf, 
+ * create new string greater than was, 
+ * copy old to new
+ * delete old
+ */
 void ExtendBuffer (struct buffer *buf)
 {
 	char * tmp_str;
@@ -25,3 +35,13 @@ void ExtendBuffer (struct buffer *buf)
 
 	buf->str = tmp_str;
 }
+
+
+
+/* Free buffer
+ */
+ void FreeBuffer (struct buffer * buf)
+ {
+	free (buf->str);
+	free (buf);
+ }
