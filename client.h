@@ -51,4 +51,6 @@ int ReadToBuffer (struct client *, int);
 char * StatusUsersConnecting (struct clientlist *);
 char * StatusUsersPlaying (struct clientlist *);
 char * GetInfoPlayer (struct client *);
+
+void GiveUserId (struct clientlist *);
 #endif

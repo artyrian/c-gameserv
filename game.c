@@ -327,7 +327,8 @@ void GameCycle (struct banker * bank)
 		user = user->next;
 	}
 
-	if ( completeTurn == bank->clList->cnt )
+	if ( completeTurn == bank->clList->cnt 
+		&& bank->clList->statusStartGame)
 	{
 		MonthlyCosts (bank);
 

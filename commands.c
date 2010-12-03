@@ -24,35 +24,14 @@ void ClearCommand (struct command * cmd)
 }
 
 
-/* */
-void IncrementVar ()
-{
-	global_i++;
-}
-
-
 
 /* */
-void PrintVar (int fd)
+void PrintGameNotStarted (int fd)
 {
 	char * str;
 	str = (char *) malloc (MESSAGE_LENGHT);
 
-	sprintf (str, "%d\n", global_i);
-
-	write (fd, str, strlen(str) + 1); 
-
-	free (str);
-}
-
-
-/* */
-void GameNotStarted (int fd)
-{
-	char * str;
-	str = (char *) malloc (MESSAGE_LENGHT);
-
-	sprintf (str, "Game not started.\nYou can't use any commands.\n");
+	sprintf (str, "Game not started.\nYou can use only \"help\".\n");
 
 	write (fd, str, strlen(str) + 1); 
 

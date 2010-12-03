@@ -7,16 +7,22 @@
 void FindCommandBeforeStart (struct client * user)
 {
 	char * str;
+	int i;
 	int fd;
-
+	
 	fd = user->contact->fd;
 	str = user->cmd->first->str;
+	i = strlen (user->cmd->first->str) - 1;
 
-	printf ("str=%s.", str);
-	if ( user->cmd->first != NULL )
+	if ( !strncmp (str, "help", 4) && i )
 	{
-		GameNotStarted (fd);
-	}	
+		Help (fd);
+	}
+	else
+	{
+		PrintGameNotStarted (fd);
+	}
+
 }
 
 
@@ -46,23 +52,12 @@ void FindInfoCommand(struct banker * bank)
 	{
 		WhoAmI (bank);
 	}
-	else if ( !strncmp (str, "INC", 3) && i )
-	{
-		printf ("Now inc\n");	
-		IncrementVar ();
-	}	
-	else if ( !strncmp(str, "PRINT", 5) && i )
-	{
-		printf ("Now print(FD=%d)\n", fd);	
-		PrintVar (fd);
-	}
 	else if ( !strncmp(str, "help", 4) && i)
 	{
 		Help (fd);
 	}
 	else 
 		PrintHelp (bank);
-	
 }
 
 

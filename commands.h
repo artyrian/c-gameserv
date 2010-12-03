@@ -23,9 +23,7 @@ void InitCommand (struct command *);
 void ClearCommand (struct command *);
 void Help (int);
 
-void IncrementVar ();
-void PrintVar (int);
-void GameNotStarted (int);
+void PrintGameNotStarted (int);
 
 void Market (struct banker *);
 void PlayerInfo (struct banker *);

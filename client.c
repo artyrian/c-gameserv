@@ -16,7 +16,7 @@ void InitFlags (struct userFlags * f)
 /* */
 void InitUser (struct client * user, struct clientlist *clList, int fd)
 {
-	user->number = clList->cnt;
+	//user->number = clList->cnt; It's not need.fn better GetUserId()
 	user->next = NULL;
 
 	user->contact = (struct settings*)malloc(sizeof(struct settings));
@@ -132,11 +132,15 @@ void ConnectClient (struct clientlist *clList, int fd)
 	user = (struct client *) malloc (sizeof(struct client));
 
 	if ( clList->first == NULL )
+	{
 		clList->first = user;
+	}
 	else
+	{
 		clList->last->next = user;
-
+	}
 	clList->last = user;
+
 	clList->cnt ++;
 
 	InitUser (user, clList, fd);
@@ -148,8 +152,10 @@ void ConnectClient (struct clientlist *clList, int fd)
 	
 	if ( clList->cnt == clList->maxPlayers )
 	{
+		GiveUserId (clList);
 		clList->statusStartGame = 1;
 		PrintToAll (clList, "The game start now.\n>= = = 1th month. = = =<\n>");
+
 	}
 }	
 
@@ -185,7 +191,7 @@ void DisconnectClient (struct clientlist *clList)
 	int fd;
 	
 	fd = clList->current->contact->fd; 
-	CopyStructuresClient (clList);
+	CopyStructuresClient (clList); // better to change this.
 
 	shutdown(fd, 2);
 	close (fd);
@@ -215,40 +221,9 @@ void DisconnectClient (struct clientlist *clList)
 
 
 /* */
-void DisconnectClient2 (struct clientlist *clList)
-{
-	int fd;
-	
-	fd = clList->current->contact->fd; 
-
-
-	shutdown(fd, 2);
-	close (fd);
-	printf ("Client disconnected. FD=%d.\n", fd);
-
-	clList->last = GetPrewLastClient (clList);
-	clList->last->next = NULL;
-	clList->cnt --;
-	printf ("Clients now:%d.\n", clList->cnt);
-
-	if ( clList->cnt  == 0)
-	{
-		clList->first = clList->last = NULL;
-		printf ("All players disconnected :-(\n");
-	}
-	else
-	{
-		PrintToAll (clList, StatusUsersConnecting (clList));
-	}
-
-}
-
-
-
-/* */
 void DeniedClient (int fd)
 {
-	const char strFullServer[30] = "Sorry! The server is full.\n";
+	const char strFullServer[60] = "Sorry! The server is full or game started.\n";
 	write (	fd, strFullServer, strlen(strFullServer) + 1);
 }
 
@@ -283,7 +258,9 @@ int ReadToBuffer (struct client * user, int fd)
 
 
 
-/* */
+/* Fn to create string status connected clients at the moment.
+ * return string.
+ */
 char * StatusUsersConnecting (struct clientlist * clList)
 {
 	char * strInfo;
@@ -304,7 +281,9 @@ char * StatusUsersConnecting (struct clientlist * clList)
 
 
 
-/* */
+/* Fn create string of players still active in game.
+ * retur string
+ */
 char * StatusUsersPlaying (struct clientlist * clList)
 {
 	char * strInfo;
@@ -339,4 +318,29 @@ char * GetInfoPlayer (struct client * user)
 		user->data->cntBuild	
 		);
 	return strInfo;
+}
+
+
+
+/* */
+void GiveUserId (struct clientlist * clList)
+{
+	int i;
+	int fd;
+	struct client * user;
+	char * strInfo;
+
+	strInfo = (char *) malloc (MESSAGE_LENGHT);
+	user = clList->first;
+	i = 1;	
+	while ( user != NULL )
+	{
+		fd = user->contact->fd;
+		sprintf (strInfo, "You are player %d.\n", i);
+		write (fd, strInfo, strlen(strInfo) + 1);
+
+		user->number = i++;
+		user = user->next;
+	}
+	free (strInfo);
 }

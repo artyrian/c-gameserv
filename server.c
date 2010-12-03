@@ -9,25 +9,27 @@ int GetNumberPlayers  (char ** argv)
 	int num = 0;
 	
 	if ( argv[1] != '\0' )
+	{
 		num = atoi (argv[1]);
+	}
 
 //	num = 3;
-
 	return num;
 }
 
 
 
-/* */
+/* Get number of port from argv */
 int GetPort (char ** argv)
 {
 	int port = 0;
 
 	if ( argv[2] != '\0' )
+	{
 		port = atoi (argv[2]);
+	}
 
 //	port = 7777;
-
 	return port;
 }
 
@@ -75,7 +77,6 @@ void BindAddress (int ls, struct sockaddr_in * addr)
 	int opt = 1;
 
 	setsockopt(ls, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
 	if (0 != bind(ls, (struct sockaddr *) addr, sizeof(*addr)))
 	{
 		perror("bind");
@@ -85,9 +86,8 @@ void BindAddress (int ls, struct sockaddr_in * addr)
 
 
 /* */
-void CheckActionOnFD_SET (struct clientlist *clList,
-				int ls,
-				fd_set *readfds)
+void CheckActionOnFD_SET (struct clientlist * clList, int ls,
+				fd_set * readfds)
 {
 	int res;
 	int max_d;
@@ -100,7 +100,6 @@ void CheckActionOnFD_SET (struct clientlist *clList,
 		perror ("select\n");
 		exit (1);
 	}
-
 }
 
 
