@@ -3,7 +3,9 @@
 #include "server.h"
 #include "print.h"
 #include <time.h>
-
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 
 /* */
@@ -332,18 +334,16 @@ void GameCycle (struct banker * bank)
 	{
 		MonthlyCosts (bank);
 
-		DisableBankrupt (bank);
-
 		Auction (bank);
 
 		TakeOrder (bank);	
 
-		ChangeStateMarket (bank); 
-
 		CheckBuyingFactories (bank);
 
 		DisableBankrupt (bank);
-	
+
+		ChangeStateMarket (bank); 
+
 		TurnOffToAllPlayers (bank);
 
 		PrintToAll (bank->clList, "\n>");
