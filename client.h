@@ -3,7 +3,10 @@
 
 #include "main.h"
 #include "buffer.h"
-#include "game.h"
+#include <sys/times.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 
 #define MESSAGE_LENGHT 64
 
@@ -36,6 +39,8 @@ struct clientlist
 	struct client *last;
 };
 
+
+
 void CreateClientList (struct clientlist **, char **);
 
 int MaxDescriptor (struct clientlist *, fd_set *, int);
@@ -44,7 +49,6 @@ void AcceptQuery (int, struct clientlist *);
 
 void ConnectClient (struct clientlist *, int);
 void DisconnectClient (struct clientlist *);
-void DeniedClient (int);
 
 int ReadToBuffer (struct client *, int);
 
@@ -52,5 +56,4 @@ char * StatusUsersConnecting (struct clientlist *);
 char * StatusUsersPlaying (struct clientlist *);
 char * GetInfoPlayer (struct client *);
 
-void GiveUserId (struct clientlist *);
 #endif
