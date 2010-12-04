@@ -1,7 +1,6 @@
 #ifndef _COMMANDS_H_
 #define _COMMANDS_H_
 
-#include "main.h"
 #include "game.h"
 
 #define NUMBER_OF_COMMANDS 10
