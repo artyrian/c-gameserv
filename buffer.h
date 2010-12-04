@@ -2,9 +2,6 @@
 #define _BUFFER_H_
 
 
-#include "main.h"
-
-
 #define BUF_SIZE 32 
 
 
