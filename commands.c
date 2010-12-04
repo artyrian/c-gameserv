@@ -6,19 +6,19 @@
 #include <string.h>
 
 
-void InitCommand (struct command * cmd)
-void ClearCommand (struct command * cmd)
-void Production (struct banker * bank)
-void Buy (struct banker * bank)
-void Sell (struct banker * bank)
-void Build (struct banker * bank)
-void TurnStep (struct banker * bank)
-void WhoAmI (struct banker * bank)
-void Help (int fd)
-void PrintHelp (struct banker * bank)
-void InitBuyLot (struct banker * bank)
-void InitSellLot (struct banker * bank)
-void SendPlayerInfo (struct banker * bank, int numPlayer)
+void InitCommand (struct command * cmd);
+void ClearCommand (struct command * cmd);
+void Production (struct banker * bank);
+void Buy (struct banker * bank);
+void Sell (struct banker * bank);
+void Build (struct banker * bank);
+void TurnStep (struct banker * bank);
+void WhoAmI (struct banker * bank);
+void Help (int fd);
+void PrintHelp (struct banker * bank);
+void InitBuyLot (struct banker * bank);
+void InitSellLot (struct banker * bank);
+void SendPlayerInfo (struct banker * bank, int numPlayer);
 
 
 

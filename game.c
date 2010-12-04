@@ -185,7 +185,7 @@ void DisableBankrupt (struct banker * bank)
 void ChangeStateMarket (struct banker * bank)
 {
 	int r, sum, i;
-	char * strInfo, * strWin;
+	char * strInfo;
 	
 	const int level_change[5][5] = 
 	{
@@ -224,6 +224,8 @@ void ChangeStateMarket (struct banker * bank)
  */
 void CheckCountOfPlayers (struct banker * bank)
 {
+	char * strWin;
+
 	if ( bank->clList->cnt == 1 && bank->clList->statusStartGame == 1)
 	{
 		strWin= (char *) malloc (MESSAGE_LENGHT);
