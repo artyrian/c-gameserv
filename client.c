@@ -125,29 +125,6 @@ void AcceptQuery (int ls, struct clientlist * clList)
 
 
 
-/* */
-struct client * GetPrewLastClient(struct clientlist *clList)
-{
-	struct client * user, * returnValueUser;
-	user = (struct client *) malloc (sizeof(struct client));
-
-	returnValueUser = clList->first;
-	user = clList->first;
-
-	while ( user != NULL )
-	{
-		if ( user->next != NULL)
-			returnValueUser = user;
-		else
-			break;
-		user = user->next;	
-	}
-	free (user);
-	return returnValueUser;
-
-}
-
-
 
 /* Add client to struct, Init, print about it, check for start game.
  */
