@@ -16,25 +16,6 @@
 #define HALF_PRICE_FACTORY 2500
 
 #define WAIT_BUILD 5
-//------aucton --------//
-struct listAuction
-{
-	int maxItemBuy;
-	int maxItemSell;
-	struct auction * firstBuy;
-	struct auction * firstSell;
-};
-
-struct auction
-{
-	int item;
-	int price;
-	struct client * user;
-	struct auction * next;
-	struct auction * right;
-};
-// auction //
-
 
 struct fctr
 {
@@ -69,7 +50,6 @@ struct banker
 	struct clientlist * clList;
 };
 
-void InitBuyOrSell (struct auction *);
 void InitStuff (struct stuff *);
 void CreateBank (struct banker **, char **);
 
@@ -77,13 +57,4 @@ void GameCycle (struct banker *);
 char * GetBuyPrice (struct banker *);
 char * GetSellPrice (struct banker *);
 
-// From module auction //
-int AddToListBuy (struct client *, struct listAuction *);
-int AddToListSell (struct client *, struct listAuction *);
-void FreeListBuy (struct listAuction *);
-void FreeListSell (struct listAuction *);
-
-void HoldingAuctionBuy (struct listAuction *, struct clientlist *);
-void HoldingAuctionSell (struct listAuction *, struct clientlist *);
-// end //
 #endif
