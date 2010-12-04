@@ -8,6 +8,16 @@
 #include <stdio.h>
 
 
+void FindCommandBeforeStart (struct client *);
+void FindInfoCommand(struct banker *);
+int FindActionCommand (struct banker *);
+void FindCommand (struct banker *);
+void AddWordToStructure (struct clientlist *, char *, int);
+char SkipSpaces (struct clientlist *, char, int *i);
+void DivisionWords (struct clientlist *);
+void ParseCommand (struct banker *);
+
+
 
 /* Compare user->cmd->first with cmd in fn.
  * if can't find, print help to help :)
@@ -166,6 +176,7 @@ void AddWordToStructure (struct clientlist * clList, char * str, int i)
 }
 
 
+
 /* Skip tabs, spaces and enters
  */
 char SkipSpaces (struct clientlist * clList, char c, int * i)
@@ -250,4 +261,3 @@ void ParseCommand (struct banker * bank)
 		PrintComing (fd, bank->clList->statusStartGame);
 	}
 }
-
