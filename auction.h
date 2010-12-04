@@ -4,7 +4,7 @@
 #include "main.h"
 #include "game.h"
 
-//------aucton --------//
+
 struct listAuction
 {
 	int maxItemBuy;
@@ -12,6 +12,7 @@ struct listAuction
 	struct auction * firstBuy;
 	struct auction * firstSell;
 };
+
 
 struct auction
 {
@@ -25,5 +26,6 @@ struct auction
 
 void Auction (struct banker *);
 void InitBuyOrSell (struct auction *);
+
 
 #endif

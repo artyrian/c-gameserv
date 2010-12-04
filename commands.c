@@ -6,10 +6,19 @@
 #include <string.h>
 
 
-
-void InitBuyLot (struct banker *);
-void InitSellLot (struct banker *);
-void SendPlayerInfo (struct banker *, int );
+void InitCommand (struct command * cmd)
+void ClearCommand (struct command * cmd)
+void Production (struct banker * bank)
+void Buy (struct banker * bank)
+void Sell (struct banker * bank)
+void Build (struct banker * bank)
+void TurnStep (struct banker * bank)
+void WhoAmI (struct banker * bank)
+void Help (int fd)
+void PrintHelp (struct banker * bank)
+void InitBuyLot (struct banker * bank)
+void InitSellLot (struct banker * bank)
+void SendPlayerInfo (struct banker * bank, int numPlayer)
 
 
 
@@ -47,12 +56,11 @@ void Market (struct banker * bank)
 {
 	char * strPlayers, * strMonth, * strBuy, * strSell,  * str;
 	int fd;
+
 	strMonth = (char *) malloc (MESSAGE_LENGHT);
-
-	strPlayers = StatusUsersPlaying(bank->clList);
-
 	sprintf (strMonth, "Current month is %dth.\n", bank->month);
 
+	strPlayers = StatusUsersPlaying(bank->clList);
 	strBuy = GetBuyPrice (bank);
 	strSell = GetSellPrice (bank);
 
@@ -87,6 +95,7 @@ void PlayerInfo (struct banker * bank)
 	{
 		cmd->first = cmd->first->next;	
 		numPlayer = atoi (cmd->first->str);
+
 		if ( numPlayer > 0 )
 		{
 			SendPlayerInfo (bank, numPlayer);
@@ -108,32 +117,16 @@ void PlayerInfo (struct banker * bank)
 void Production (struct banker * bank)
 {
 	struct stuff * data;
-	int fd;
-	char * strInfo;
-	
 
 	data = bank->clList->current->data;
 	if ( data->order < data->factory ) 
 	{
 		data->order ++;
-		fd = bank->clList->current->contact->fd;
-		strInfo = (char *) malloc (MESSAGE_LENGHT);
-		sprintf (strInfo, "You'll create %d production in all.\n",
-			data->order);	
-
-		write (fd, strInfo, strlen(strInfo) + 1);
-		free (strInfo);
-
+		PrintWillCreateProd (bank);
 	}
 	else 
 	{
-		fd = bank->clList->current->contact->fd;
-		strInfo = (char *) malloc (MESSAGE_LENGHT);
-		sprintf (strInfo, 
-			"You can't create product in month more than have factory\n");
-
-		write (fd, strInfo, strlen(strInfo) + 1);
-		free (strInfo);
+		PrintCantCreateProd (bank);
 	}
 }
 
@@ -199,6 +192,7 @@ void Build (struct banker * bank)
 	{
 		user->data->project->last->next = tmp;
 	}
+
 	user->data->project->last = tmp;
 
 	user->data->money -= HALF_PRICE_FACTORY;
@@ -275,9 +269,7 @@ void InitBuyLot (struct banker * bank)
 {
 	struct client * user;
 	struct command * cmd;
-	int item, price, fd;
-	char * strInfoPrice, * strInfoItem;
-
+	int item, price;
 
 	user = bank->clList->current;
 	cmd = bank->clList->current->cmd;
@@ -298,26 +290,12 @@ void InitBuyLot (struct banker * bank)
 		}
 		else
 		{
-			fd = bank->clList->current->contact->fd;
-			strInfoPrice = (char *) malloc (MESSAGE_LENGHT);
-			sprintf (strInfoPrice, 
-				"Wrong price! Min. price:\t%d.\n", 
-				bank->sell->price
-				);
-			write (fd, strInfoPrice, strlen (strInfoPrice)+1);
-			free (strInfoPrice);
+			PrintWrongPriceSell (bank);
 		}
 	}
 	else
 	{
-		fd = bank->clList->current->contact->fd;
-		strInfoItem = (char *) malloc (MESSAGE_LENGHT);
-		sprintf (strInfoItem, 
-			"Wrong item! Max. item:\t%d.\n", 
-			bank->sell->item	
-			);
-		write (fd, strInfoItem, strlen (strInfoItem) + 1);
-		free (strInfoItem);
+		PrintWrongItemSell (bank);
 	}
 
 }
@@ -329,12 +307,10 @@ void InitSellLot (struct banker * bank)
 {
 	struct client * user;
 	struct command * cmd;
-	int item, price, fd;
-	char * strInfoPrice, * strInfoItem;
-
+	int item, price;
 
 	user = bank->clList->current;
-	cmd = bank->clList->current->cmd;
+	cmd = user->cmd;
 
 	cmd->first = cmd->first->next;
 	item = atoi (cmd->first->str);
@@ -352,41 +328,28 @@ void InitSellLot (struct banker * bank)
 		}
 		else
 		{
-			fd = bank->clList->current->contact->fd;
-			strInfoPrice = (char *) malloc (MESSAGE_LENGHT);
-			sprintf (strInfoPrice, 
-				"Wrong price! Max. price:\t%d.\n", 
-				bank->buy->price
-				);
-			write (fd, strInfoPrice, strlen (strInfoPrice)+1);
-			free (strInfoPrice);
+			PrintWrongPriceBuy (bank);
 		}
 	}
 	else
 	{
-		fd = bank->clList->current->contact->fd;
-		strInfoItem = (char *) malloc (MESSAGE_LENGHT);
-		sprintf (strInfoItem, 
-			"Wrong item! Max. item:\t%d.\n", 
-			bank->buy->item
-			);
-		write (fd, strInfoItem, strlen (strInfoItem) + 1);
-		free (strInfoItem);
+		PrintWrongItemBuy (bank);
+
 	}
 
 }
 
 
 
-/* */
+/* shake from 1st to current
+ * every step check NULL ot not NULL.
+ */
 void SendPlayerInfo (struct banker * bank, int numPlayer)
 {
 	struct client * user;
 	char * strInfo, * strWrong;
 	int fd;
 
-	strWrong = (char *) malloc (MESSAGE_LENGHT);
-	sprintf (strWrong, "Player with number %d not found.\n",numPlayer);
 
 	fd = bank->clList->current->contact->fd;
 	user = bank->clList->first;
@@ -403,12 +366,15 @@ void SendPlayerInfo (struct banker * bank, int numPlayer)
 		user = user->next;
 		if ( user == NULL )
 		{
+			strWrong = (char *) malloc (MESSAGE_LENGHT);
+			sprintf (strWrong, 
+				"Player with number %d not found.\n",
+				numPlayer
+			);
 			write (fd, strWrong, strlen(strWrong) + 1);
+			free (strWrong);
 		}
 	}
-
-	free (strWrong);
-
 }
 
 

@@ -9,6 +9,7 @@ void ExtendBuffer (struct buffer *);
 void FreeBuffer (struct buffer *);
 
 
+
 /* Initialization buffer.
  * Create string for write
  * and init cnts of parts(1) and symbols(0)

@@ -3,18 +3,24 @@
 
 #include "main.h"
 #include "client.h"
-#include "game.h"
+#include "auction.h"
 
 
+#define MESSAGE_LENGHT 64
 
+
+void PrintWrongPriceBuy (struct banker *);
+void PrintWrongItemBuy (struct banker *);
+void PrintWrongPriceSell (struct banker *);
+void PrintWrongItemSell (struct banker *);
+void PrintCantCreateProd (struct banker *);
+void PrintWillCreateProd (struct banker *);
+void PrintBankrupt (struct client *);
+void PrintMadeProd (struct client *, int i);
 void PrintGameNotStarted (int);
-void PrintRandomArray (int *, int);
-void PrintListBuy (struct listAuction *);
-void PrintListSell (struct listAuction *);
 void PrintServerInfo (int, int);
 void PrintDescriptors (int *, int);
 
-void PrintClientlist (struct clientlist *);
 
 void PrintToFDSuccessConnect (int);
 void PrintToAll (struct clientlist *, char *);

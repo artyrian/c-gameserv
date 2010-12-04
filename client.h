@@ -1,19 +1,18 @@
 #ifndef _CLIENT_H_
 #define _CLIENT_H_
 
-#include "main.h"
 #include "buffer.h"
+#include "server.h"
 #include <sys/times.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 
-#define MESSAGE_LENGHT 64
-
 struct userFlags
 {
 	int turn;
 };
+
 
 struct client
 {

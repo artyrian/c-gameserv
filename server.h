@@ -24,6 +24,8 @@ void CreateListenSocket (int *);
 void BindAddress (int , struct sockaddr_in *);
 void ListeningState (int );
 
+void InitSettings (struct settings *, int, int);
+
 void CheckActionOnFD_SET (struct clientlist *, int, fd_set *);
 void CheckDataFromClients (struct banker *, fd_set *);
 

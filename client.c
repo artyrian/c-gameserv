@@ -2,68 +2,29 @@
 #include "server.h"
 #include "print.h"
 #include "commands.h"
+#include "auction.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-void GiveUserId (struct clientlist *);
-void DeleteCurrentClientFromList (struct clientlist * clList);	
-void CheckCountOfUsers (struct clientlist *);
+
+void CreateClientList (struct clientlist **, char **);
+int MaxDescriptor (struct clientlist *, fd_set *, int);
+void AcceptQuery (int, struct clientlist *);
+void ConnectClient (struct clientlist *, int);
+void DisconnectClient (struct clientlist *);
 void DeniedClient (int);
+int ReadToBuffer (struct client *, int);
+char * StatusUsersConnecting (struct clientlist *);
+char * StatusUsersPlaying (struct clientlist *);
+char * GetInfoPlayer (struct client *);
 void AddClientToList (struct client *, struct clientlist *);
+void InitFlags (struct userFlags *);
+void InitUser (struct client *, struct clientlist *, int);
 void ReadyToStartGame (struct clientlist *);
-
-
-
-/* Initializating all flags 
- */
-void InitFlags (struct userFlags * f)
-{
-	f->turn = 0;
-}
-
-
-
-/* Initializating settings information
- */
-void InitSettings (struct settings * contact, int fd, int cnt) 
-{
-	contact->fd = fd;
-	contact->num = cnt;
-}
-
-
-
-/* Init most of all firms of client
- */
-void InitUser (struct client * user, struct clientlist *clList, int fd)
-{
-	//user->number = clList->cnt; It's not need.fn better GetUserId()
-	user->next = NULL;
-
-	user->contact = (struct settings*)malloc(sizeof(struct settings));
-	InitSettings (user->contact, fd, clList->cnt);
-
-	user->f = (struct userFlags *) malloc (sizeof(struct userFlags));
-	InitFlags (user->f);
-
-	user->sell = (struct auction *) malloc (sizeof(struct auction));
-	InitBuyOrSell (user->sell);
-
-	user->buy = (struct auction *) malloc (sizeof(struct auction));
-	InitBuyOrSell (user->buy);
-
-	user->data = (struct stuff *) malloc (sizeof(struct stuff));
-	InitStuff (user->data);
-
-	user->buf = (struct buffer * ) malloc (sizeof(struct buffer));
-	InitBuffer (user->buf);
-
-	user->cmd = (struct command * ) malloc (sizeof(struct command));
-	InitCommand (user->cmd);
-	
-}
-
+void GiveUserId (struct clientlist *);
+void DeleteCurrentClientFromList (struct clientlist *);
+void CheckCountOfUsers (struct clientlist *);
 
 
 
@@ -201,9 +162,8 @@ int ReadToBuffer (struct client * user, int fd)
 {
 	int rc;
 	char c; 
-	char * str;
 	
-	str = user->buf->str;
+	user->buf->str = user->buf->str;
 
 	rc = read (fd, &c, sizeof(char));
 	if ( rc == -1 )
@@ -211,14 +171,16 @@ int ReadToBuffer (struct client * user, int fd)
 		perror ("read");
 	}
 	
-	if ( rc != 0 )
+	if ( user->buf->cnt  == BUF_SIZE * user->buf->part - 1)
 	{
-		str[user->buf->cnt++] = c;
-		str[user->buf->cnt] = '\0';
+		ExtendBuffer (user->buf);
 	}
 
-	if ( user->buf->cnt  == BUF_SIZE * user->buf->part - 1)
-		ExtendBuffer (user->buf);
+	if ( rc != 0 )
+	{
+		user->buf->str[user->buf->cnt++] = c;
+		user->buf->str[user->buf->cnt] = '\0';
+	}
 
 	return rc;
 }
@@ -313,6 +275,47 @@ void AddClientToList (struct client * user, struct clientlist * clList)
 	clList->last = user;
 
 	clList->cnt ++;
+}
+
+
+
+/* Initializating all flags 
+ */
+void InitFlags (struct userFlags * f)
+{
+	f->turn = 0;
+}
+
+
+
+/* Init most of all firms of client
+ */
+void InitUser (struct client * user, struct clientlist *clList, int fd)
+{
+	//user->number = clList->cnt; It's not need.fn better GetUserId()
+	user->next = NULL;
+
+	user->contact = (struct settings*)malloc(sizeof(struct settings));
+	InitSettings (user->contact, fd, clList->cnt);
+
+	user->f = (struct userFlags *) malloc (sizeof(struct userFlags));
+	InitFlags (user->f);
+
+	user->sell = (struct auction *) malloc (sizeof(struct auction));
+	InitBuyOrSell (user->sell);
+
+	user->buy = (struct auction *) malloc (sizeof(struct auction));
+	InitBuyOrSell (user->buy);
+
+	user->data = (struct stuff *) malloc (sizeof(struct stuff));
+	InitStuff (user->data);
+
+	user->buf = (struct buffer * ) malloc (sizeof(struct buffer));
+	InitBuffer (user->buf);
+
+	user->cmd = (struct command * ) malloc (sizeof(struct command));
+	InitCommand (user->cmd);
+	
 }
 
 

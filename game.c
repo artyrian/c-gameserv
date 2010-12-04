@@ -8,48 +8,131 @@
 #include <string.h>
 
 
+void BuildFactoryToEnd (struct client * user);
+int UsersTurnOn (struct banker *);
+void TakeOrder (struct banker *);
+int MakeProd (struct stuff *);
+void MonthlyCosts (struct banker *);
+void DisableBankrupt (struct banker *);
+void ChangeStateMarket (struct banker *);
+void CheckCountOfPlayers (struct banker *);
+void TurnOffToAllPlayers (struct banker *);
+void InitBank (struct banker *, char **);
+void InitStuff (struct stuff *);
+void CreateBank (struct banker **, char **);
+void FollowBankAuction (struct banker *);
+void DeleteFirstBuildRecord (struct client *);
+void CheckBuyingFactories (struct banker *);
+void GameCycle (struct banker *);
+char * GetBuyPrice (struct banker *);
+char * GetSellPrice (struct banker *);
+
+
+
+/* */
+void GameCycle (struct banker * bank)
+{
+	int completeTurn;
+	
+	FollowBankAuction (bank);
+
+	completeTurn = UsersTurnOn (bank);
+
+	if ( completeTurn == bank->clList->cnt 
+		&& bank->clList->statusStartGame)
+	{
+		MonthlyCosts (bank);
+
+		Auction (bank);
+
+		TakeOrder (bank);	
+
+		CheckBuyingFactories (bank);
+
+		DisableBankrupt (bank);
+
+		ChangeStateMarket (bank); 
+		
+		CheckCountOfPlayers (bank);
+
+		TurnOffToAllPlayers (bank);
+
+		PrintToAll (bank->clList, "\n>");
+	}
+}
+
+
+
+/* Count how many user turn on
+ */
+int UsersTurnOn (struct banker * bank)
+{
+	int completeTurn;
+	struct client * user;
+
+	completeTurn = 0;
+	user = bank->clList->first;
+
+	while ( user != NULL )
+	{
+		if ( user->f->turn != 0 )
+		{
+			completeTurn++;
+		}
+		user = user->next;
+	}
+	
+	return completeTurn;
+}
+
+
 
 /* */
 void TakeOrder (struct banker * bank)
 {
 	struct client * user;
 	struct stuff * data;
-	char * strInfo;
-	int order, i, fd;
+	int i;
 	int fOrder;
 
 	user = bank->clList->first;
 	while ( user != NULL )
 	{
 		
-		fOrder = 0;
 		data = user->data;
-		order = data->order;
-		for ( i = 0; i < order; i++)
+		for ( i = 0; i < data->order; i++)
 		{
 			if ( data->money >= PRICE_PROD )
 			{
-				data->money -= PRICE_PROD;
-				data->raw --;
-				data->product ++;
-				fOrder = 1;
+				fOrder = MakeProd (data);
+			}
+			else
+			{
+				fOrder = 0;
 			}
 		}
 		
 		if ( fOrder != 0 )
 		{
-			strInfo = (char *) malloc (MESSAGE_LENGHT);
-			fd = user->contact->fd;
-			sprintf (strInfo, "Made %d production.\n", i);	
-			write (fd, strInfo , strlen(strInfo) + 1);
-			user->data->order = 0;
-			free (strInfo);
+			PrintMadeProd (user, i); 
 		}
-
 
 		user = user->next;
 	}
 }
+
+
+
+/*
+ */
+ int MakeProd (struct stuff * data)
+ {
+	data->money -= PRICE_PROD;
+	data->raw --;
+	data->product ++;
+
+	return 1;
+ }
 
 
 
@@ -76,21 +159,16 @@ void MonthlyCosts (struct banker * bank)
 void DisableBankrupt (struct banker * bank)
 {
 	struct client * user;
-	char * strInfo;
-	int fd;
 	
 	user = bank->clList->first;
 	while ( user != NULL )
 	{
 		if ( user->data->money <= 0 )
 		{
-			strInfo = (char *) malloc (MESSAGE_LENGHT);
 			bank->clList->current = user;
-			fd = user->contact->fd;
-			sprintf (strInfo, "You are bankrupt!\n");
-			write (fd, strInfo, strlen(strInfo) + 1);
+			PrintBankrupt (user);
+
 			DisconnectClient (bank->clList);
-			free (strInfo);
 			user = bank->clList->first;
 		}
 		else
@@ -102,7 +180,8 @@ void DisableBankrupt (struct banker * bank)
 
 
 
-/* */
+/* Inc month, prefet new state of market, Print to all about new month
+ */
 void ChangeStateMarket (struct banker * bank)
 {
 	int r, sum, i;
@@ -137,8 +216,14 @@ void ChangeStateMarket (struct banker * bank)
 	PrintToAll (bank->clList, strInfo);
 
 	free (strInfo);
+}
 
 
+
+/* If left one player - congratulate him.
+ */
+void CheckCountOfPlayers (struct banker * bank)
+{
 	if ( bank->clList->cnt == 1 && bank->clList->statusStartGame == 1)
 	{
 		strWin= (char *) malloc (MESSAGE_LENGHT);
@@ -148,7 +233,6 @@ void ChangeStateMarket (struct banker * bank)
 		exit (1);
 	}
 }
-
 
 
 /* */
@@ -252,11 +336,7 @@ void CheckBuyingFactories (struct banker * bank)
 		{
 			if (bank->month-construct->startMonth == WAIT_BUILD)
 			{
-				printf ("check building now\n");
-				user->data->money -= HALF_PRICE_FACTORY;
-				user->data->factory++;
-				user->data->cntBuild--;
-			
+				BuildFactoryToEnd (user);
 				DeleteFirstBuildRecord (user);
 			}
 			construct = construct->next;
@@ -266,44 +346,11 @@ void CheckBuyingFactories (struct banker * bank)
 }
 
 
-/* */
-void GameCycle (struct banker * bank)
+void BuildFactoryToEnd (struct client * user)
 {
-	struct client * user;
-	int completeTurn;
-	
-	FollowBankAuction (bank);
-
-	completeTurn = 0;
-	user = bank->clList->first;
-	while ( user != NULL )
-	{
-		if ( user->f->turn != 0 )
-		{
-			completeTurn++;
-		}
-		user = user->next;
-	}
-
-	if ( completeTurn == bank->clList->cnt 
-		&& bank->clList->statusStartGame)
-	{
-		MonthlyCosts (bank);
-
-		Auction (bank);
-
-		TakeOrder (bank);	
-
-		CheckBuyingFactories (bank);
-
-		DisableBankrupt (bank);
-
-		ChangeStateMarket (bank); 
-
-		TurnOffToAllPlayers (bank);
-
-		PrintToAll (bank->clList, "\n>");
-	}
+	user->data->money -= HALF_PRICE_FACTORY;
+	user->data->factory++;
+	user->data->cntBuild--;
 }
 
 

@@ -4,6 +4,8 @@
 
 
 
+/*
+ */
 int main(int argc, char ** argv, char ** envp)
 {
 	int ls; 
@@ -30,12 +32,16 @@ int main(int argc, char ** argv, char ** envp)
 	 	CheckActionOnFD_SET (bank->clList, ls, &readfds);
 
 		if (FD_ISSET(ls, &readfds))
+		{
 			AcceptQuery (ls, bank->clList);
+		}
 
 		CheckDataFromClients (bank, &readfds);
 
 		if ( bank->clList->statusStartGame != 0 )
+		{
 			GameCycle (bank);
+		}
 	}
 
 	return 0;

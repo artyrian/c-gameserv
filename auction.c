@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <time.h>
 
+
+void Auction (struct banker *);
 int AddToListBuy (struct client *, struct listAuction *);
 int AddToListSell (struct client *, struct listAuction *);
 void HoldingAuctionBuy (struct listAuction *, struct clientlist *);
@@ -16,12 +18,13 @@ void ProvideOneUserSell (struct auction *, struct clientlist *);
 void CreateRandomArray (int *, int);
 
 
-
 /* */
 void Auction (struct banker * bank)
 {
 	struct client * user;
 	struct listAuction * auction;
+
+	PrintToAll (bank->clList, "\nAuction info:\n");
 
 	auction = (struct listAuction *) malloc(sizeof(struct listAuction));
 	auction->firstBuy = auction->firstSell = NULL;
@@ -76,7 +79,7 @@ void ProvideOneUserBuy (struct auction * buy, struct clientlist * clList)
 
 	strInfo = (char *) malloc (MESSAGE_LENGHT);
 	sprintf (strInfo, 
-		"Player %d bought: %d raw by %d for one item.\n",
+		"Player %d bought: raw | price for one\n$\t\t%d\t%d\n",
 		buy->user->number,
 		item,
 		buy->user->buy->price
@@ -100,7 +103,7 @@ void ProvideOneUserSell (struct auction * sell, struct clientlist * clList)
 
 	strInfo = (char *) malloc (MESSAGE_LENGHT);
 	sprintf (strInfo, 
-		"Player %d sold: %d product by %d for one item.\n",
+		"Player %d sold: product | price for one\n$\t\t%d\t%d\n",
 		sell->user->number,
 		item,
 		sell->user->sell->price
@@ -372,19 +375,19 @@ int AddToListBuy (struct client * user, struct listAuction * auction)
 	tmp->next = NULL;
 
 	if ( auction->firstBuy == NULL)
-	{
+	{ // if list null
 		auction->firstBuy = tmp;
 	}
 	else
 	{
 		if ( tmp->price > auction->firstBuy->price )
-		{
+		{ // add first
 			last = auction->firstBuy;
 			tmp->next = last;
 			auction->firstBuy = tmp;
 		}
 		else
-		{
+		{ // find where add
 
 			buy = auction->firstBuy;
 			while ( buy != NULL )
@@ -396,8 +399,7 @@ int AddToListBuy (struct client * user, struct listAuction * auction)
 					return 0;
 				}
 				if ( tmp->price == buy->price )
-				{
-					
+				{ // go right
 					while ( buy != NULL )
 					{
 						last = buy;
@@ -409,8 +411,8 @@ int AddToListBuy (struct client * user, struct listAuction * auction)
 				last = buy;
 				buy = buy->next;
 			}
+			// add to last
 			last->next = tmp;
-
 		}
 	}
 
