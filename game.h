@@ -1,7 +1,6 @@
 #ifndef _GAME_H_
 #define _GAME_H_
 
-#include "main.h"
 
 #define START_MONEY 10000
 #define START_RAW 4
@@ -17,17 +16,20 @@
 
 #define WAIT_BUILD 5
 
+
 struct fctr
 {
 	int startMonth;
 	struct fctr * next;
 };
 
+
 struct build
 {
 	struct fctr * first;
 	struct fctr * last;
 };
+
 
 struct stuff
 {
@@ -49,6 +51,7 @@ struct banker
 	struct auction * sell;
 	struct clientlist * clList;
 };
+
 
 void InitStuff (struct stuff *);
 void CreateBank (struct banker **, char **);
