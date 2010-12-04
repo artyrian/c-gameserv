@@ -7,6 +7,7 @@
 
 
 
+void PrintGameNotStarted (int);
 void PrintRandomArray (int *, int);
 void PrintListBuy (struct listAuction *);
 void PrintListSell (struct listAuction *);

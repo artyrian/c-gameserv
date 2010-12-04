@@ -2,9 +2,9 @@
 #define _COMMANDS_H_
 
 #include "main.h"
-#include "print.h"
+#include "game.h"
 
-#define NUMBER_OF_COMMANDS 9
+#define NUMBER_OF_COMMANDS 10
 
 struct word
 {
@@ -21,9 +21,6 @@ struct command
 
 void InitCommand (struct command *);
 void ClearCommand (struct command *);
-void Help (int);
-
-void PrintGameNotStarted (int);
 
 void Market (struct banker *);
 void PlayerInfo (struct banker *);
@@ -33,6 +30,7 @@ void Sell (struct banker *);
 void Build (struct banker *);
 void TurnStep (struct banker *);
 void WhoAmI (struct banker *);
+void Help (int);
 
 void PrintHelp (struct banker *);
 #endif

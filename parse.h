@@ -2,8 +2,7 @@
 #define _PARSE_H_
 
 #include "buffer.h"
-#include "commands.h"
-#include "client.h"
+#include "game.h"
 
 void ParseCommand (struct banker *);
 

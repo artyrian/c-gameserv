@@ -1,9 +1,17 @@
 #include "parse.h"
 #include "server.h"
+#include "commands.h"
+#include "client.h"
+#include "print.h"
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 
 
-/* */
+/* Compare user->cmd->first with cmd in fn.
+ * if can't find, print help to help :)
+ */
 void FindCommandBeforeStart (struct client * user)
 {
 	char * str;
@@ -14,7 +22,7 @@ void FindCommandBeforeStart (struct client * user)
 	str = user->cmd->first->str;
 	i = strlen (user->cmd->first->str) - 1;
 
-	if ( !strncmp (str, "help", 4) && i )
+	if ( strncmp (str, "help", 4) == 0 )
 	{
 		Help (fd);
 	}
@@ -27,7 +35,10 @@ void FindCommandBeforeStart (struct client * user)
 
 
 
-/* */
+
+/* Compare user->cmd->first with cmd in fn.
+ * if can't find, print help to help :)
+ */
 void FindInfoCommand(struct banker * bank)
 {
 	struct client * user;
@@ -40,19 +51,19 @@ void FindInfoCommand(struct banker * bank)
 	str = user->cmd->first->str;
 	i = strlen (user->cmd->first->str) - 1;
 
-	if ( !strncmp (str, "market", 6) && i )
+	if ( strncmp (str, "market", 6) == 0 )
 	{
 		Market (bank);	
 	}
-	else if ( !strncmp (str, "player", 6) && i )
+	else if ( strncmp (str, "player", 6) == 0 )
 	{
 		PlayerInfo (bank);	
 	}
-	else if ( !strncmp (str, "whoami", 6) && i )
+	else if ( strncmp (str, "whoami", 6) == 0 )
 	{
 		WhoAmI (bank);
 	}
-	else if ( !strncmp(str, "help", 4) && i)
+	else if ( strncmp(str, "help", 4) == 0 )
 	{
 		Help (fd);
 	}
@@ -62,7 +73,9 @@ void FindInfoCommand(struct banker * bank)
 
 
 
-/* */
+/* Compare user->cmd->first with cmd in fn.
+ * if can't find, print help to help :)
+ */
 int FindActionCommand (struct banker * bank)
 {
 	struct client * user;
@@ -105,7 +118,9 @@ int FindActionCommand (struct banker * bank)
 
 
 
-/* */
+/* 
+ *
+ */
 void FindCommand (struct banker * bank)
 {
 	struct command * cmd;
@@ -121,10 +136,9 @@ void FindCommand (struct banker * bank)
 		{
 			FindInfoCommand(bank);	
 		}
-		else
+		else if ( FindActionCommand (bank) == 0 )
 		{
-			if ( FindActionCommand (bank) == 0 )
-				FindInfoCommand (bank);
+			FindInfoCommand (bank);
 		}
 	}
 }
@@ -152,7 +166,8 @@ void AddWordToStructure (struct clientlist * clList, char * str, int i)
 }
 
 
-/* */
+/* Skip tabs, spaces and enters
+ */
 char SkipSpaces (struct clientlist * clList, char c, int * i)
 {
 	while ( c == '\t' || c == ' ' || c == '\n' ) 
@@ -164,7 +179,9 @@ char SkipSpaces (struct clientlist * clList, char c, int * i)
 
 
 
-/* */
+/* 
+ * SEE IT!!! 100% it's make simpleer.
+ */
 void DivisionWords (struct clientlist * clList)
 {
 	char * parsedStr;
@@ -172,24 +189,23 @@ void DivisionWords (struct clientlist * clList)
 	int i, j, cnt;
 	
 	cnt = clList->current->buf->cnt;
-	parsedStr = (char *) malloc ((cnt+1) * sizeof(char));
+	parsedStr = (char *) malloc (cnt * sizeof(char));
 	
 	i = 0;
 	c = clList->current->buf->str[0];
 	c = SkipSpaces (clList, c, &i);
-	while ( c != '\n' &&  c != '\0' && i <= cnt )
+	while ( c != '\0' && i <= cnt )
 	{
 		j = 0;
 		c = SkipSpaces (clList, c, &i);
-		while (c != '\0' && c != ' ' && c != '\t' && c != '\n'
-			&& i <= cnt) 
+		while (c != '\0' && c != ' ' && c != '\t' && c != '\n')
 		{
 			parsedStr[j++] = c;
 			parsedStr[j] = '\0';
 			c = clList->current->buf->str[++i];
 		}
 
-		//c = SkipSpaces (clList, c, &i);
+		c = SkipSpaces (clList, c, &i);
 		if ( c != '\0' || j != 1 )
 		{
 			AddWordToStructure (clList, parsedStr, j);
@@ -200,7 +216,10 @@ void DivisionWords (struct clientlist * clList)
 }
 
 
-/* */
+
+/* Use data in buffer: divisions by words and find such cmd 
+ * Reset,  init buffer; refresh cmd, print coming msg.
+ */
 void ParseCommand (struct banker * bank)
 {
 	char * str;
@@ -212,6 +231,7 @@ void ParseCommand (struct banker * bank)
 	fd = user->contact->fd;
 	i = user->buf->cnt;
 	str = user->buf->str;
+
 	if ( str[i - 1] == '\n' )
 	{
 	
@@ -219,8 +239,7 @@ void ParseCommand (struct banker * bank)
 
 		FindCommand (bank);
 
-		free (user->buf->str);
-		free (user->buf);
+		FreeBuffer (user->buf);
 		user->buf = (struct buffer*) malloc (sizeof(struct buffer));
 
 		InitBuffer (user->buf);		

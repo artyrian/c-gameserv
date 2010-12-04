@@ -1,5 +1,24 @@
 #include "print.h"
 #include "server.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+
+/* */
+void PrintGameNotStarted (int fd)
+{
+	char * str;
+	str = (char *) malloc (MESSAGE_LENGHT);
+
+	sprintf (str, "Game not started.\nYou can use only \"help\".\n");
+
+	write (fd, str, strlen(str) + 1); 
+
+	free (str);
+
+}
+
 
 
 

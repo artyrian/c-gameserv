@@ -7,6 +7,7 @@
 #include <netinet/ip.h>
 
 #include "client.h"
+#include "game.h"
 #include "main.h"
 
 struct settings

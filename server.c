@@ -1,6 +1,7 @@
 #include "server.h"
 #include "parse.h"
-
+#include <stdlib.h>
+#include <stdio.h>
 
 
 /* get number of players from argv*/
@@ -85,6 +86,7 @@ void BindAddress (int ls, struct sockaddr_in * addr)
 }
 
 
+
 /* */
 void CheckActionOnFD_SET (struct clientlist * clList, int ls,
 				fd_set * readfds)
@@ -128,4 +130,3 @@ void CheckDataFromClients (struct banker * bank, fd_set * readfds)
 		clList->current = clList->current->next;
 	}
 }
-

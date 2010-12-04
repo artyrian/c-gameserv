@@ -1,15 +1,30 @@
 #include "commands.h"
 #include "server.h"
+#include "print.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 
 
-/* */
+void InitBuyLot (struct banker *);
+void InitSellLot (struct banker *);
+void SendPlayerInfo (struct banker *, int );
+
+
+
+/* Init cnt of cmd and NULL ptrs for 1st and last cmd
+ */
 void InitCommand (struct command * cmd)
 {
 	cmd->cnt = 0;
 	cmd->last = cmd->first = NULL;
 }
 
+
+
+/* Free all cmd (accurately).
+ */
 void ClearCommand (struct command * cmd)
 {
 	struct word * tmp;
@@ -24,20 +39,6 @@ void ClearCommand (struct command * cmd)
 }
 
 
-
-/* */
-void PrintGameNotStarted (int fd)
-{
-	char * str;
-	str = (char *) malloc (MESSAGE_LENGHT);
-
-	sprintf (str, "Game not started.\nYou can use only \"help\".\n");
-
-	write (fd, str, strlen(str) + 1); 
-
-	free (str);
-
-}
 
 
 
@@ -71,40 +72,6 @@ void Market (struct banker * bank)
 	free (str);
 }
 
-
-
-/* */
-void SendPlayerInfo (struct banker * bank, int numPlayer)
-{
-	struct client * user;
-	char * strInfo, * strWrong;
-	int fd;
-
-	strWrong = (char *) malloc (MESSAGE_LENGHT);
-	sprintf (strWrong, "Player with number %d not found.\n", numPlayer);
-
-	fd = bank->clList->current->contact->fd;
-	user = bank->clList->first;
-	while (user != NULL)
-	{
-		if ( user->number == numPlayer )
-		{
-			strInfo = GetInfoPlayer (user);
-			write (fd, strInfo, strlen(strInfo) + 1);	
-			free (strInfo);
-			break;
-		}
-
-		user = user->next;
-		if ( user == NULL )
-		{
-			write (fd, strWrong, strlen(strWrong) + 1);
-		}
-	}
-
-	free (strWrong);
-
-}
 
 
 /* */
@@ -173,114 +140,6 @@ void Production (struct banker * bank)
 
 
 /* */
-void InitBuyLot (struct banker * bank)
-{
-	struct client * user;
-	struct command * cmd;
-	int item, price, fd;
-	char * strInfoPrice, * strInfoItem;
-
-
-	user = bank->clList->current;
-	cmd = bank->clList->current->cmd;
-
-	cmd->first = cmd->first->next;
-	item = atoi (cmd->first->str);
-
-	cmd->first = cmd->first->next;
-	price = atoi (cmd->first->str);
-
-	if ( (item > 0) && (item <= bank->sell->item) )
-	{
-		if ( price >= bank->sell->price )
-		{
-			user->buy->item = item;
-			user->buy->price = price;
-			PrintSuccessBuy (bank->clList);
-		}
-		else
-		{
-			fd = bank->clList->current->contact->fd;
-			strInfoPrice = (char *) malloc (MESSAGE_LENGHT);
-			sprintf (strInfoPrice, 
-				"Wrong price! Min. price:\t%d.\n", 
-				bank->sell->price
-				);
-			write (fd, strInfoPrice, strlen (strInfoPrice) + 1);
-			free (strInfoPrice);
-		}
-	}
-	else
-	{
-		fd = bank->clList->current->contact->fd;
-		strInfoItem = (char *) malloc (MESSAGE_LENGHT);
-		sprintf (strInfoItem, 
-			"Wrong item! Max. item:\t%d.\n", 
-			bank->sell->item	
-			);
-		write (fd, strInfoItem, strlen (strInfoItem) + 1);
-		free (strInfoItem);
-	}
-
-}
-
-
-
-/* */
-void InitSellLot (struct banker * bank)
-{
-	struct client * user;
-	struct command * cmd;
-	int item, price, fd;
-	char * strInfoPrice, * strInfoItem;
-
-
-	user = bank->clList->current;
-	cmd = bank->clList->current->cmd;
-
-	cmd->first = cmd->first->next;
-	item = atoi (cmd->first->str);
-
-	cmd->first = cmd->first->next;
-	price = atoi (cmd->first->str);
-
-	if ( (item > 0) && (item <= bank->buy->item) )
-	{
-		if ( price <= bank->buy->price )
-		{
-			user->sell->item = item;
-			user->sell->price = price;
-			PrintSuccessSell (bank->clList);
-		}
-		else
-		{
-			fd = bank->clList->current->contact->fd;
-			strInfoPrice = (char *) malloc (MESSAGE_LENGHT);
-			sprintf (strInfoPrice, 
-				"Wrong price! Max. price:\t%d.\n", 
-				bank->buy->price
-				);
-			write (fd, strInfoPrice, strlen (strInfoPrice) + 1);
-			free (strInfoPrice);
-		}
-	}
-	else
-	{
-		fd = bank->clList->current->contact->fd;
-		strInfoItem = (char *) malloc (MESSAGE_LENGHT);
-		sprintf (strInfoItem, 
-			"Wrong item! Max. item:\t%d.\n", 
-			bank->buy->item
-			);
-		write (fd, strInfoItem, strlen (strInfoItem) + 1);
-		free (strInfoItem);
-	}
-
-}
-
-
-
-/* */
 void Buy (struct banker * bank)
 {
 	struct client * user;
@@ -297,7 +156,6 @@ void Buy (struct banker * bank)
 		PrintHelp (bank);
 	}
 }
-
 
 
 
@@ -390,6 +248,9 @@ void Help (int fd)
 	
 	write (fd, &strHelp, strlen(strHelp) + 1);
 }
+
+
+
 /* */
 void PrintHelp (struct banker * bank)
 {
@@ -400,3 +261,159 @@ void PrintHelp (struct banker * bank)
 	fd = bank->clList->current->contact->fd;
 	write (fd, &strHelp, strlen(strHelp) + 1);
 }
+
+
+
+/*
+ * Functions who helps  to general Fn-cmds
+*/
+
+
+
+/* */
+void InitBuyLot (struct banker * bank)
+{
+	struct client * user;
+	struct command * cmd;
+	int item, price, fd;
+	char * strInfoPrice, * strInfoItem;
+
+
+	user = bank->clList->current;
+	cmd = bank->clList->current->cmd;
+
+	cmd->first = cmd->first->next;
+	item = atoi (cmd->first->str);
+
+	cmd->first = cmd->first->next;
+	price = atoi (cmd->first->str);
+
+	if ( (item > 0) && (item <= bank->sell->item) )
+	{
+		if ( price >= bank->sell->price )
+		{
+			user->buy->item = item;
+			user->buy->price = price;
+			PrintSuccessBuy (bank->clList);
+		}
+		else
+		{
+			fd = bank->clList->current->contact->fd;
+			strInfoPrice = (char *) malloc (MESSAGE_LENGHT);
+			sprintf (strInfoPrice, 
+				"Wrong price! Min. price:\t%d.\n", 
+				bank->sell->price
+				);
+			write (fd, strInfoPrice, strlen (strInfoPrice)+1);
+			free (strInfoPrice);
+		}
+	}
+	else
+	{
+		fd = bank->clList->current->contact->fd;
+		strInfoItem = (char *) malloc (MESSAGE_LENGHT);
+		sprintf (strInfoItem, 
+			"Wrong item! Max. item:\t%d.\n", 
+			bank->sell->item	
+			);
+		write (fd, strInfoItem, strlen (strInfoItem) + 1);
+		free (strInfoItem);
+	}
+
+}
+
+
+
+/* */
+void InitSellLot (struct banker * bank)
+{
+	struct client * user;
+	struct command * cmd;
+	int item, price, fd;
+	char * strInfoPrice, * strInfoItem;
+
+
+	user = bank->clList->current;
+	cmd = bank->clList->current->cmd;
+
+	cmd->first = cmd->first->next;
+	item = atoi (cmd->first->str);
+
+	cmd->first = cmd->first->next;
+	price = atoi (cmd->first->str);
+
+	if ( (item > 0) && (item <= bank->buy->item) )
+	{
+		if ( price <= bank->buy->price )
+		{
+			user->sell->item = item;
+			user->sell->price = price;
+			PrintSuccessSell (bank->clList);
+		}
+		else
+		{
+			fd = bank->clList->current->contact->fd;
+			strInfoPrice = (char *) malloc (MESSAGE_LENGHT);
+			sprintf (strInfoPrice, 
+				"Wrong price! Max. price:\t%d.\n", 
+				bank->buy->price
+				);
+			write (fd, strInfoPrice, strlen (strInfoPrice)+1);
+			free (strInfoPrice);
+		}
+	}
+	else
+	{
+		fd = bank->clList->current->contact->fd;
+		strInfoItem = (char *) malloc (MESSAGE_LENGHT);
+		sprintf (strInfoItem, 
+			"Wrong item! Max. item:\t%d.\n", 
+			bank->buy->item
+			);
+		write (fd, strInfoItem, strlen (strInfoItem) + 1);
+		free (strInfoItem);
+	}
+
+}
+
+
+
+/* */
+void SendPlayerInfo (struct banker * bank, int numPlayer)
+{
+	struct client * user;
+	char * strInfo, * strWrong;
+	int fd;
+
+	strWrong = (char *) malloc (MESSAGE_LENGHT);
+	sprintf (strWrong, "Player with number %d not found.\n",numPlayer);
+
+	fd = bank->clList->current->contact->fd;
+	user = bank->clList->first;
+	while (user != NULL)
+	{
+		if ( user->number == numPlayer )
+		{
+			strInfo = GetInfoPlayer (user);
+			write (fd, strInfo, strlen(strInfo) + 1);	
+			free (strInfo);
+			break;
+		}
+
+		user = user->next;
+		if ( user == NULL )
+		{
+			write (fd, strWrong, strlen(strWrong) + 1);
+		}
+	}
+
+	free (strWrong);
+
+}
+
+
+
+
+/*
+ * Functions who helps  to general Fn-cmds
+ */
