@@ -1,3 +1,9 @@
-1) Both tasks is ended. mb refactoring some places.
+Both tasks is ended. mb refactoring some places.
 
-NB!!! Use time.h fot srand, because pseaudo-random ints is use.
+Gameserv oassde by Stolyarov.
+
+1) add static fn.
+2) add distribute of pieces in random auction.
+
+In other, all good.
+
