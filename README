@@ -1,8 +1,8 @@
 Both tasks is ended. mb refactoring some places.
 
-Gameserv oassde by Stolyarov.
+Gameserv was passed to Stolyarov.
 
-1) add static fn.
+1) add static functions.
 2) add distribute of pieces in random auction.
 
 In other, all good.
